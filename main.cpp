@@ -34,14 +34,30 @@ int main(int argc, char ** argv)
         }
 
         po::notify (vm);
-
-        std::cout << taskFile << std::endl;
-        std::cout << outputDir << std::endl;
     }
-    catch (std::exception & exception) {
+    catch (std::exception & exc) {
         std::cerr << "Error during parsing command line: " << std::endl
-                  << exception.what() << std::endl;
+                  << exc.what() << std::endl;
         return 1;
+    }
+
+    Launcher launcher;
+    try {
+        launcher.set_output_dir(outputDir);
+        launcher.set_task(taskFile);
+    }
+    catch (std::exception & exc) {
+        std::cerr << "Error during initializing launcher: " << std::endl
+                  << exc.what() << std::endl;
+        return 1;
+    }
+
+    try {
+        launcher.run();
+    }
+    catch (std::exception & exc) {
+        std::cerr << "Runtime error: " << std::endl
+                  << exc.what() << std::endl;
     }
 
     return 0;
