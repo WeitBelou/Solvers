@@ -8,7 +8,10 @@
 
 class Launcher
 {
+public:
+    Launcher ();
 
+    void run() const;
 };
 
 
