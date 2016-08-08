@@ -11,24 +11,35 @@ int main(int argc, char ** argv)
     std::string taskFile;
     std::string outputDir;
 
+    auto taskFileOption = po::value<std::string>(&taskFile);
+    taskFileOption->value_name("task")->required();
+
+    auto outputDirOption = po::value<std::string>(&outputDir);
+    outputDirOption->value_name("output")->default_value(".");
+
     desc.add_options ()
-        ("help, h", "Show help")
-        ("task", po::value<std::string>(&taskFile), "File with task")
-        ("output", po::value<std::string>(&outputDir), "Output directory")
+        ("help,H"   ,                  "Show help")
+        ("task,T"   , taskFileOption , "File with task")
+        ("output,O" , outputDirOption, "Output directory")
         ;
 
-    po::variables_map vm;
     try {
-        po::parsed_options parsed = po::command_line_parser(argc, argv).
-                                        options(desc).allow_unregistered().run();
-        po::store (parsed, vm);
+        po::variables_map vm;
+        po::store (po::parse_command_line(argc, argv, desc), vm);
+
+        if (vm.count("help"))
+        {
+            std::cout << desc << std::endl;
+            return 0;
+        }
+
         po::notify (vm);
 
         std::cout << taskFile << std::endl;
         std::cout << outputDir << std::endl;
     }
     catch (std::exception & exception) {
-        std::cerr << "Error during parsing command line: "
+        std::cerr << "Error during parsing command line: " << std::endl
                   << exception.what() << std::endl;
         return 1;
     }
