@@ -4,6 +4,10 @@ project(Elasticity)
 set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
 set (CMAKE_INCLUDE_CURRENT_DIR ON)
 
+#Boost
+find_package(Boost COMPONENTS program_options REQUIRED)
+include_directories(${Boost_INCLUDE_DIR})
+
 #Find and setup deal ii
 find_package (deal.II REQUIRED
               HINTS $ENV{DEAL_II_DIR})
@@ -19,4 +23,5 @@ deal_ii_setup_target (launcher)
 
 set(SOURCE_FILES main.cpp)
 add_executable(Elasticity ${SOURCE_FILES})
+target_link_libraries (Elasticity ${Boost_LIBRARIES})
 target_link_libraries(Elasticity eLast launcher)
