@@ -65,7 +65,7 @@ void PrimalSolver<dim>::assemble_rhs (Vector<double> &rhs)
     const size_t nQPoints = this->quadrature->size ();
 
     Vector<double> cellRhs (dofsPerCell);
-    std::vector<double> rhsValues;
+    std::vector<double> rhsValues(nQPoints);
     std::vector<types::global_dof_index> localDofIndices (dofsPerCell);
 
     for (auto cell : this->dofHandler.active_cell_iterators ())

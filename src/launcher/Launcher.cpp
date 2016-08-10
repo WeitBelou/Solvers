@@ -44,5 +44,31 @@ void Launcher::run ()
     std::cout << "Output will be writed in: " << bfs::canonical (outputDir)
               << std::endl;
 
+    dealii::Triangulation<2> triangulation;
+    dealii::GridGenerator::hyper_cube (triangulation, 0.0, 1.0);
+
+    dealii::FE_Q<2> fe (2);
+    dealii::QGauss<2> quadrature (2);
+    dealii::ZeroFunction<2> zero (1);
+    dealii::ConstantFunction<2> one (1.0, 2);
+
+    LaplaceSolver::PrimalSolver<2> solver (triangulation,
+                                           fe,
+                                           quadrature,
+                                           zero,
+                                           one);
+    solver.refine_grid ();
+    solver.refine_grid ();
+    solver.solve_problem ();
+
+    bfs::path filename = outputDir;
+    filename /= "result";
+
+    Postprocessor::OutputResults<2>
+        outputResults (filename.string (),
+                       dealii::DataOutBase::vtu);
+
+    solver.postprocess (outputResults);
+
     std::cout << "Task completed." << std::endl;
 }

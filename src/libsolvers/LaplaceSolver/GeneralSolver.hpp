@@ -171,7 +171,6 @@ GeneralSolver<dim>::assemble_linear_system (GeneralSolver::LinearSystem &linearS
         = std::bind (&GeneralSolver<dim>::copy_local_to_global,
                      this,
                      std::placeholders::_1,
-                     std::placeholders::_2,
                      std::ref (linearSystem));
 
     WorkStream::run (dofHandler.begin_active (),
@@ -271,10 +270,8 @@ GeneralSolver<dim>::LinearSystem::LinearSystem (const DoFHandler<dim> &dofHandle
 {
     hangingNodeConstraints.clear ();
 
-    auto mhnc = [] (const DoFHandler<dim> &dof, ConstraintMatrix &matrix)
-    {
-        DoFTools::make_hanging_node_constraints (dof, matrix);
-    };
+    void (* mhnc)(const DoFHandler<dim> &, ConstraintMatrix &) =
+        &DoFTools::make_hanging_node_constraints;
 
     Threads::Task<> sideTask = Threads::new_task (mhnc,
                                                   dofHandler,

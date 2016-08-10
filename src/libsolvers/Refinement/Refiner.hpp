@@ -54,7 +54,7 @@ template <int dim>
 class Refiner
 {
 public:
-    Refiner (Triangulation<dim> triangulation);
+    Refiner (Triangulation<dim> & triangulation);
 
     virtual ~Refiner() {}
 
@@ -65,7 +65,7 @@ protected:
 };
 
 template <int dim>
-Refiner<dim>::Refiner (Triangulation<dim> triangulation)
+Refiner<dim>::Refiner (Triangulation<dim> & triangulation)
     :
     triangulation(&triangulation)
 {

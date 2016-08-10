@@ -63,25 +63,7 @@ void OutputResults<dim>::operator() (const DoFHandler<dim> &doFHandler,
     DataOut <dim> dataOut;
     dataOut.attach_dof_handler (doFHandler);
 
-    std::vector<std::string> names;
-    switch (dim)
-    {
-        case 1:
-            names.push_back ("solution");
-            break;
-        case 2:
-            names.push_back ("solution_x");
-            names.push_back ("solution_y");
-            break;
-        case 3:
-            names.push_back ("solution_x");
-            names.push_back ("solution_y");
-            names.push_back ("solution_z");
-            break;
-        default:
-        AssertThrow (false, ExcNotImplemented ());
-    }
-    dataOut.add_data_vector (solution, names);
+    dataOut.add_data_vector (solution, "solution");
     dataOut.build_patches ();
 
     std::string filename = outputBaseName
