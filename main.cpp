@@ -15,7 +15,7 @@ int main(int argc, char ** argv)
     taskFileOption->value_name("task")->required();
 
     auto outputDirOption = po::value<std::string>(&outputDir);
-    outputDirOption->value_name("output")->default_value(".");
+    outputDirOption->value_name("output")->default_value("./");
 
     desc.add_options ()
         ("help,H"   ,                  "Show help")

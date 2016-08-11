@@ -5,8 +5,7 @@
 
 #include "Launcher.h"
 #include "src/libsolvers/LaplaceSolver/PrimalSolver.hpp"
-#include "src/libsolvers/Postprocessor/EvaluationBase.hpp"
-#include "src/libsolvers/Refinement/Refiner.hpp"
+#include "src/libsolvers/Postprocessor/OutputResults.hpp"
 
 Launcher::Launcher ()
 {
@@ -61,11 +60,9 @@ void Launcher::run ()
     solver.refine_grid ();
     solver.solve_problem ();
 
-    bfs::path filename = outputDir;
-    filename /= "result";
-
     Postprocessor::OutputResults<2>
-        outputResults (filename.string (),
+        outputResults (outputDir.string (),
+                       "solution",
                        dealii::DataOutBase::vtu);
 
     solver.postprocess (outputResults);
