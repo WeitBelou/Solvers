@@ -56,9 +56,11 @@ void Launcher::run ()
                                            quadrature,
                                            zero,
                                            one);
-    solver.refine_grid ();
-    solver.refine_grid ();
-    solver.solve_problem ();
+    while (solver.n_dofs () < 10000)
+    {
+        solver.refine_grid ();
+        solver.solve_problem ();
+    }
 
     Postprocessor::OutputResults<2>
         outputResults (outputDir.string (),

@@ -65,6 +65,8 @@ public:
     virtual void solve_problem ();
     virtual void refine_grid () = 0;
 
+    virtual size_t n_dofs () const;
+
     virtual void
     postprocess (const Postprocessor::EvaluationBase<dim> &postprocessor) const;
 
@@ -309,6 +311,12 @@ void
 GeneralSolver<dim>::postprocess (const Postprocessor::EvaluationBase<dim> &postprocessor) const
 {
     postprocessor (dofHandler, solution);
+}
+
+template <int dim>
+size_t GeneralSolver<dim>::n_dofs () const
+{
+    return dofHandler.n_dofs ();
 }
 
 //end namespace LaplaceSolver
