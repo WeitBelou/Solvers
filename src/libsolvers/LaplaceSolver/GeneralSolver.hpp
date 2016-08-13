@@ -121,6 +121,13 @@ private:
                                LinearSystem &linearSystem) const;
 };
 
+/**
+ * GeneralSolver constructor.
+ * @param triangulation
+ * @param fe
+ * @param quadrature
+ * @param boundaryValues
+ */
 template <int dim>
 GeneralSolver<dim>::GeneralSolver (Triangulation<dim> &triangulation,
                                    const FiniteElement<dim> &fe,
@@ -135,13 +142,18 @@ GeneralSolver<dim>::GeneralSolver (Triangulation<dim> &triangulation,
 {
 
 }
-
+/**
+ * GeneralSolver destructor.
+ */
 template <int dim>
 GeneralSolver<dim>::~GeneralSolver ()
 {
     dofHandler.clear ();
 }
 
+/**
+ * Solve LaplaceProblem.
+ */
 template <int dim>
 void GeneralSolver<dim>::solve_problem ()
 {
@@ -153,27 +165,40 @@ void GeneralSolver<dim>::solve_problem ()
     linearSystem.solve (solution);
 }
 
+/**
+ * Assemble linear system for Laplace problem.
+ * @param linearSystem Linear system to assemble.
+ * @details Uses Deal.II threads to run in parallel.
+ */
 template <int dim>
 void
 GeneralSolver<dim>::assemble_linear_system (GeneralSolver::LinearSystem &linearSystem)
 {
+    auto assembleRhsFunc = [this] (Vector<double> &rhs)
+    {
+        this->assemble_rhs (rhs);
+    };
+
     Threads::Task<>
-        rhsTask = Threads::new_task (&GeneralSolver<dim>::assemble_rhs,
-                                     *this,
+        rhsTask = Threads::new_task (assembleRhsFunc,
                                      linearSystem.rhs);
 
-    auto assembleMatrixFunc
-        = std::bind (&GeneralSolver<dim>::local_assemble_matrix,
-                     this,
-                     std::placeholders::_1,
-                     std::placeholders::_2,
-                     std::placeholders::_3);
+    auto assembleMatrixFunc = [this] (auto cell,
+                                      auto scratchData,
+                                      auto copyData)
+    {
+        this->local_assemble_matrix (cell,
+                                     scratchData,
+                                     copyData);
+    };
 
-    auto copyMatrixFunc
-        = std::bind (&GeneralSolver<dim>::copy_local_to_global,
-                     this,
-                     std::placeholders::_1,
-                     std::ref (linearSystem));
+    auto copyMatrixFunc = [this] (auto copyData,
+                                  auto linearSystem)
+    {
+        this->copy_local_to_global (copyData,
+                                    linearSystem);
+    };
+
 
     WorkStream::run (dofHandler.begin_active (),
                      dofHandler.end (),
@@ -199,6 +224,12 @@ GeneralSolver<dim>::assemble_linear_system (GeneralSolver::LinearSystem &linearS
 
 }
 
+/**
+ * AssemblyScratchData constructor. Create data in which we store finite
+ * element and quadrature data
+ * @param fe
+ * @param quadrature
+ */
 template <int dim>
 GeneralSolver<dim>::AssemblyScratchData::AssemblyScratchData (const FiniteElement<dim> &fe,
                                                               const Quadrature<dim> &quadrature)
@@ -210,6 +241,10 @@ GeneralSolver<dim>::AssemblyScratchData::AssemblyScratchData (const FiniteElemen
 
 }
 
+/**
+ * AssemblyScratchData copy constructor.
+ * @param scratchData
+ */
 template <int dim>
 GeneralSolver<dim>::AssemblyScratchData::AssemblyScratchData (const AssemblyScratchData &scratchData)
     :
@@ -220,6 +255,12 @@ GeneralSolver<dim>::AssemblyScratchData::AssemblyScratchData (const AssemblyScra
 
 }
 
+/**
+ * Assemble local cell matrix.
+ * @param cell Iterator to cell
+ * @param scratchData Object which stores FEValue data
+ * @param copyData Object in which we will write local matrix.
+ */
 template <int dim>
 void
 GeneralSolver<dim>::local_assemble_matrix (const typename DoFHandler<dim>::active_cell_iterator &cell,
@@ -250,6 +291,11 @@ GeneralSolver<dim>::local_assemble_matrix (const typename DoFHandler<dim>::activ
     cell->get_dof_indices (copyData.localDofIndices);
 }
 
+/**
+ * Copy data from cell matrix to global matrix
+ * @param copyData Data to copy
+ * @param linearSystem System in which matrix we copy data.
+ */
 template <int dim>
 void
 GeneralSolver<dim>::copy_local_to_global (const GeneralSolver::AssemblyCopyData &copyData,
@@ -267,13 +313,21 @@ GeneralSolver<dim>::copy_local_to_global (const GeneralSolver::AssemblyCopyData 
     }
 }
 
+/**
+ * LinearSystem constructor.
+ * Create linear system, matrix and right hand side, from degrees of freedom.
+ * @param dofHandler
+ */
 template <int dim>
 GeneralSolver<dim>::LinearSystem::LinearSystem (const DoFHandler<dim> &dofHandler)
 {
     hangingNodeConstraints.clear ();
 
-    void (* mhnc)(const DoFHandler<dim> &, ConstraintMatrix &) =
-        &DoFTools::make_hanging_node_constraints;
+    auto mhnc = [] (const DoFHandler<dim> &d,
+                    ConstraintMatrix &c)
+    {
+        DoFTools::make_hanging_node_constraints (d, c);
+    };
 
     Threads::Task<> sideTask = Threads::new_task (mhnc,
                                                   dofHandler,
@@ -292,6 +346,10 @@ GeneralSolver<dim>::LinearSystem::LinearSystem (const DoFHandler<dim> &dofHandle
     rhs.reinit (dofHandler.n_dofs ());
 }
 
+/**
+ * Solve linear system.
+ * @param solution Vector in which we write answer.
+ */
 template <int dim>
 void GeneralSolver<dim>::LinearSystem::solve (Vector<double> &solution) const
 {
@@ -306,6 +364,10 @@ void GeneralSolver<dim>::LinearSystem::solve (Vector<double> &solution) const
     hangingNodeConstraints.distribute (solution);
 }
 
+/**
+ * Do postproccessing (e.g. output results, get value in some points)
+ * @param postprocessor
+ */
 template <int dim>
 void
 GeneralSolver<dim>::postprocess (const Postprocessor::EvaluationBase<dim> &postprocessor) const
@@ -313,6 +375,9 @@ GeneralSolver<dim>::postprocess (const Postprocessor::EvaluationBase<dim> &postp
     postprocessor (dofHandler, solution);
 }
 
+/**
+ * @return Number of degrees of freedom
+ */
 template <int dim>
 size_t GeneralSolver<dim>::n_dofs () const
 {
