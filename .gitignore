@@ -36,5 +36,6 @@ __pycache__/
 *$py.class
 
 ## My staff
+.idea
 bin/
 out/
