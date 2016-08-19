@@ -27,7 +27,7 @@ add_library (launcher ${LAUNCHER_SOURCES})
 target_link_libraries (launcher ${Boost_FILESYSTEM_LIBRARIES})
 deal_ii_setup_target (launcher)
 
-set(SOURCE_FILES main.cpp)
+set(SOURCE_FILES src/main.cpp)
 add_executable(Solvers ${SOURCE_FILES})
 target_link_libraries (Solvers ${Boost_LIBRARIES})
 target_link_libraries(Solvers solvers launcher)
