@@ -4,6 +4,7 @@
 #include <iostream>
 
 #include "Launcher.h"
+#include "src/libsolvers/ElasticitySolver/DummyProblem.hpp"
 
 Launcher::Launcher ()
 {
@@ -37,6 +38,8 @@ void Launcher::run ()
     std::cout << "Running task: " << taskName.filename ()
               << " from: " << bfs::canonical (taskName).remove_filename ()
               << std::endl;
+
+    DummyProblem::run_pipe_task();
 
     std::cout << "Output will be writen in: " << bfs::canonical (outputDir)
               << std::endl;
