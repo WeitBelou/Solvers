@@ -9,6 +9,19 @@ using namespace DummyProblem;
 void ::DummyProblem::run_pipe_task()
 {
     Triangulation<dim> triangulation;
+    set_triangulation(triangulation);
+
+    FESystem<dim> fe(FE_Q<dim>(1), dim);
+    QGauss<dim> quadrature(2);
+    ElasticitySolver::IncrementalBoundaryValues incremental_boundary_values;
+    BodyForce body_force;
+
+    ElasticitySolver::TopLevel top_level(triangulation, fe, quadrature, body_force, incremental_boundary_values);
+    top_level.run();
+}
+
+void DummyProblem::set_triangulation(Triangulation<dim> &triangulation)
+{
     const double inner_radius = 0.8,
         outer_radius = 1;
     GridGenerator::cylinder_shell(triangulation,
@@ -30,7 +43,7 @@ void ::DummyProblem::run_pipe_task()
                 {
                     cell->face(f)->set_boundary_id(1);
                 }
-                else if (std::sqrt(face_center[0] * face_center[0] +
+                else if (sqrt(face_center[0] * face_center[0] +
                                    face_center[1] * face_center[1])
                          <
                          (inner_radius + outer_radius) / 2)
@@ -47,14 +60,7 @@ void ::DummyProblem::run_pipe_task()
     static const CylindricalManifold<dim> cylindrical_manifold(2);
     triangulation.set_all_manifold_ids(0);
     triangulation.set_manifold(0, cylindrical_manifold);
-
-    FESystem<dim> fe(FE_Q<dim>(1), dim);
-    QGauss<dim> quadrature(2);
-    ElasticitySolver::IncrementalBoundaryValues incremental_boundary_values;
-    BodyForce body_force;
-
-    ElasticitySolver::TopLevel top_level(triangulation, fe, quadrature, body_force, incremental_boundary_values);
-    top_level.run();
+    triangulation.refine_global(1);
 }
 
 BodyForce::BodyForce() : Function<dim>(dim)

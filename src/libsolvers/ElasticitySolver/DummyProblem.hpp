@@ -15,6 +15,8 @@ using namespace dealii;
 
 void run_pipe_task();
 
+void set_triangulation(Triangulation<dim> &triangulation);
+
 class BodyForce: public Function<dim>
 {
 public:
@@ -28,6 +30,6 @@ public:
 
 };
 
-};
+}
 
 #endif //SOLVERS_DUMMYPROBLEM_HPP
