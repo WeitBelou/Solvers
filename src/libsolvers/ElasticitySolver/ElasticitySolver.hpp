@@ -52,50 +52,32 @@
 #include <sstream>
 #include <iomanip>
 
+#include "global.hpp"
+#include "BoundaryConditions.hpp"
+
 namespace ElasticitySolver
 {
 //begin namespace ElasticitySolver
 using namespace dealii;
-
-static const int dim = 3;
+namespace bc = BoundaryConditions;
 
 struct PointHistory
 {
-    SymmetricTensor<2, dim> old_stress;
+    SymmetricTensor<2, DIM> old_stress;
 };
 
-class IncrementalBoundaryValues: public Function<dim>
+inline SymmetricTensor<2, DIM> get_strain(const FEValues<DIM> &fe_values, const size_t shape_func, const size_t q_point)
 {
-public:
-    IncrementalBoundaryValues();
+    SymmetricTensor<2, DIM> strain;
 
-    void reinit(double present_time, double present_timestep);
-
-    virtual void
-    vector_value(const Point<dim> &p,
-                 Vector<double> &values) const;
-    virtual void
-    vector_value_list(const std::vector<Point<dim>> &points,
-                      std::vector<Vector<double>> &value_list) const;
-private:
-    const double velocity;
-    double present_time;
-    double present_timestep;
-};
-
-
-inline SymmetricTensor<2, dim> get_strain(const FEValues<dim> &fe_values, const size_t shape_func, const size_t q_point)
-{
-    SymmetricTensor<2, dim> strain;
-
-    for (size_t i = 0; i < dim; ++i)
+    for (size_t i = 0; i < DIM; ++i)
     {
         strain[i][i] = fe_values.shape_grad_component(shape_func, q_point, i)[i];
     }
 
-    for (size_t i = 0; i < dim; ++i)
+    for (size_t i = 0; i < DIM; ++i)
     {
-        for (size_t j = i + 1; j < dim; ++j)
+        for (size_t j = i + 1; j < DIM; ++j)
         {
             strain[i][j] = (fe_values.shape_grad_component(shape_func, q_point, i)[j]
                             + fe_values.shape_grad_component(shape_func, q_point, j)[i]) / 2;
@@ -105,21 +87,21 @@ inline SymmetricTensor<2, dim> get_strain(const FEValues<dim> &fe_values, const 
     return strain;
 }
 
-inline SymmetricTensor<4, dim> get_stress_strain_tensor(const double lambda, const double mu)
+inline SymmetricTensor<4, DIM> get_stress_strain_tensor(const double lambda, const double mu)
 {
     auto d = [](size_t i, size_t j)
     {
         return (i == j) ? (1.0) : (0.0);
     };
 
-    SymmetricTensor<4, dim> stress_strain;
-    for (size_t i = 0; i < dim; ++i)
+    SymmetricTensor<4, DIM> stress_strain;
+    for (size_t i = 0; i < DIM; ++i)
     {
-        for (size_t j = 0; j < dim; ++j)
+        for (size_t j = 0; j < DIM; ++j)
         {
-            for (size_t k = 0; k < dim; ++k)
+            for (size_t k = 0; k < DIM; ++k)
             {
-                for (size_t l = 0; l < dim; ++l)
+                for (size_t l = 0; l < DIM; ++l)
                 {
                     stress_strain[i][j][k][l] = mu * (d(i, k) * d(j, l) + d(i, l) * d(j, k))
                                                 + lambda * d(i, j) * d(k, l);
@@ -130,20 +112,20 @@ inline SymmetricTensor<4, dim> get_stress_strain_tensor(const double lambda, con
     return stress_strain;
 }
 
-inline SymmetricTensor<2, dim> get_strain(const std::vector<Tensor<1, dim>> &grad)
+inline SymmetricTensor<2, DIM> get_strain(const std::vector<Tensor<1, DIM>> &grad)
 {
-    SymmetricTensor<2, dim> strain;
+    SymmetricTensor<2, DIM> strain;
 
-    Assert(grad.size() == dim, ExcDimensionMismatch(grad.size(), dim));
+    Assert(grad.size() == DIM, ExcDimensionMismatch(grad.size(), DIM));
 
-    for (size_t i = 0; i < dim; ++i)
+    for (size_t i = 0; i < DIM; ++i)
     {
         strain[i][i] = grad[i][i];
     }
 
-    for (size_t i = 0; i < dim; ++i)
+    for (size_t i = 0; i < DIM; ++i)
     {
-        for (size_t j = i + 1; j < dim; ++j)
+        for (size_t j = i + 1; j < DIM; ++j)
         {
             strain[i][j] = (grad[i][j] + grad[j][i]) / 2;
         }
@@ -199,28 +181,28 @@ inline Tensor<2, 3> get_rotation_matrix(const std::vector<Tensor<1, 3>> &grad_u)
 class TopLevel
 {
 public:
-    TopLevel(Triangulation <dim> &triangulation,
-                 const FESystem <dim> &fe,
-                 const QGauss <dim> &quadrature,
-                 const Function <dim> &body_force,
-                 IncrementalBoundaryValues &incremental_boundary_values);
+    TopLevel(Triangulation <DIM> &triangulation,
+                 const FESystem <DIM> &fe,
+                 const QGauss <DIM> &quadrature,
+                 const Function <DIM> &body_force,
+                 BoundaryConditions::FunctionTimeBoundaryConditions &boundary_conditions);
     ~TopLevel();
     void run();
 
 private:
-    const SmartPointer<Triangulation<dim>> triangulation;
-    const SmartPointer<const FESystem<dim>> fe;
-    const SmartPointer<const QGauss<dim>> quadrature;
+    const SmartPointer<Triangulation<DIM>> triangulation;
+    const SmartPointer<const FESystem<DIM>> fe;
+    const SmartPointer<const QGauss<DIM>> quadrature;
 
-    DoFHandler<dim> dof_handler;
+    DoFHandler<DIM> dof_handler;
 
-    const SmartPointer<IncrementalBoundaryValues> incremental_boundary_values;
-    const SmartPointer<const Function<dim>> body_force;
+    const SmartPointer<const Function<DIM>> body_force;
+    const SmartPointer<bc::FunctionTimeBoundaryConditions> boundary_conditions;
 
     Vector<double> incremental_displacement;
 
     std::vector<PointHistory> quadrature_point_history;
-    static const SymmetricTensor<4, dim> stress_strain_tensor;
+    static const SymmetricTensor<4, DIM> stress_strain_tensor;
 
     double present_time;
     double present_timestep;
@@ -241,7 +223,7 @@ private:
     class LinearSystem
     {
     public:
-        LinearSystem(const DoFHandler<dim> &dof_handler);
+        LinearSystem(const DoFHandler<DIM> &dof_handler);
 
         void solve(Vector<double> &solution) const;
 
@@ -253,10 +235,10 @@ private:
 
     struct AssemblyScratchData
     {
-        AssemblyScratchData(const FiniteElement <dim> &fe,
-                                    const Quadrature <dim> &quadrature);
+        AssemblyScratchData(const FiniteElement <DIM> &fe,
+                                    const Quadrature <DIM> &quadrature);
         AssemblyScratchData(const AssemblyScratchData &scratch);
-        FEValues<dim> fe_values;
+        FEValues<DIM> fe_values;
     };
 
     struct AssemblyCopyData
@@ -269,7 +251,7 @@ private:
 
     void assemble_linear_system(LinearSystem &linear_system);
 
-    void local_assemble_system(const typename DoFHandler<dim>::active_cell_iterator &cell,
+    void local_assemble_system(const typename DoFHandler<DIM>::active_cell_iterator &cell,
                                AssemblyScratchData &scratch_data,
                                AssemblyCopyData &copy_data) const;
 
