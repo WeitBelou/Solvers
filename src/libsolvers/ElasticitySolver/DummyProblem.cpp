@@ -5,36 +5,47 @@
 #include "DummyProblem.hpp"
 
 using namespace DummyProblem;
+namespace bc = BoundaryConditions;
 
 void ::DummyProblem::run_pipe_task()
 {
-    Triangulation<dim> triangulation;
+    Triangulation<DIM> triangulation;
     set_triangulation(triangulation);
 
-    FESystem<dim> fe(FE_Q<dim>(1), dim);
-    QGauss<dim> quadrature(2);
-    ElasticitySolver::IncrementalBoundaryValues incremental_boundary_values;
+    FESystem<DIM> fe(FE_Q<DIM>(1), DIM);
+    QGauss<DIM> quadrature(2);
+
     BodyForce body_force;
 
-    ElasticitySolver::TopLevel top_level(triangulation, fe, quadrature, body_force, incremental_boundary_values);
+    FEValuesExtractors::Scalar z_component(DIM - 1);
+    ComponentMask z_mask = fe.component_mask(z_component);
+    bc::IncrementalBoundaryValues inc_bv(velocity, z_mask);
+    bc::ZeroFunctionBoundaryValues zero_bv;
+    bc::FunctionTimeBoundaryConditions boundary_conditions({
+                                                               std::make_pair(0, &zero_bv),
+                                                               std::make_pair(1, &inc_bv)
+                                                           });
+
+    ElasticitySolver::TopLevel top_level(triangulation, fe, quadrature,
+                                         body_force, boundary_conditions);
     top_level.run();
 }
 
-void DummyProblem::set_triangulation(Triangulation<dim> &triangulation)
+void DummyProblem::set_triangulation(Triangulation<DIM> &triangulation)
 {
     const double inner_radius = 0.8,
         outer_radius = 1;
     GridGenerator::cylinder_shell(triangulation,
                                   3, inner_radius, outer_radius);
-    for (typename Triangulation<dim>::active_cell_iterator
+    for (typename Triangulation<DIM>::active_cell_iterator
              cell = triangulation.begin_active();
          cell != triangulation.end(); ++cell)
     {
-        for (unsigned int f = 0; f < GeometryInfo<dim>::faces_per_cell; ++f)
+        for (unsigned int f = 0; f < GeometryInfo<DIM>::faces_per_cell; ++f)
         {
             if (cell->face(f)->at_boundary())
             {
-                const Point<dim> face_center = cell->face(f)->center();
+                const Point<DIM> face_center = cell->face(f)->center();
                 if (face_center[2] == 0)
                 {
                     cell->face(f)->set_boundary_id(0);
@@ -57,28 +68,28 @@ void DummyProblem::set_triangulation(Triangulation<dim> &triangulation)
             }
         }
     }
-    static const CylindricalManifold<dim> cylindrical_manifold(2);
+    static const CylindricalManifold<DIM> cylindrical_manifold(2);
     triangulation.set_all_manifold_ids(0);
     triangulation.set_manifold(0, cylindrical_manifold);
     triangulation.refine_global(1);
 }
 
-BodyForce::BodyForce() : Function<dim>(dim)
+BodyForce::BodyForce() : Function<DIM>(DIM)
 {
 
 }
 
-void BodyForce::vector_value(const Point<dim> &/*p*/, Vector<double> &values) const
+void BodyForce::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
 {
-    Assert(values.size() == dim, ExcDimensionMismatch(values.size(), dim));
+    Assert(values.size() == DIM, ExcDimensionMismatch(values.size(), DIM));
 
     const double g = 9.81;
     const double rho = 7700;
 
     values = 0;
-    values(dim - 1) = -rho * g;
+    values(DIM - 1) = -rho * g;
 }
-void BodyForce::vector_value_list(const std::vector<Point<dim>> &points, std::vector<Vector<double>> &value_list) const
+void BodyForce::vector_value_list(const std::vector<Point<DIM>> &points, std::vector<Vector<double>> &value_list) const
 {
     const size_t n_points = points.size();
 

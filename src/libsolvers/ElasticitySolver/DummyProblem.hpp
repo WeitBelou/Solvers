@@ -7,25 +7,25 @@
 
 #include "ElasticitySolver.hpp"
 
+#include "global.hpp"
 namespace DummyProblem
 {
-const int dim = 3;
 
 using namespace dealii;
 
 void run_pipe_task();
 
-void set_triangulation(Triangulation<dim> &triangulation);
+void set_triangulation(Triangulation<DIM> &triangulation);
 
-class BodyForce: public Function<dim>
+class BodyForce: public Function<DIM>
 {
 public:
     BodyForce();
     virtual void
-    vector_value(const Point<dim> &p, Vector<double> &values) const override;
+    vector_value(const Point<DIM> &p, Vector<double> &values) const override;
 
     virtual void
-    vector_value_list(const std::vector<Point<dim>> &points,
+    vector_value_list(const std::vector<Point<DIM>> &points,
                       std::vector<Vector<double>> &value_list) const override;
 
 };
