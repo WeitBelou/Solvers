@@ -1,10 +1,15 @@
 #ifndef UTILS_HPP
 #define UTILS_HPP
 
+#include <deal.II/fe/fe_values.h>
+#include <deal.II/base/symmetric_tensor.h>
+
 #include "global.hpp"
 
 namespace Utils {
 //begin namespace Utils
+using namespace dealii;
+
 inline SymmetricTensor<2, DIM> get_strain(const FEValues<DIM> &fe_values, const size_t shape_func,
                                           const size_t q_point)
 {

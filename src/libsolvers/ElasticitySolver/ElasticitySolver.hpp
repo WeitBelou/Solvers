@@ -54,11 +54,13 @@
 
 #include "global.hpp"
 #include "BoundaryConditions.hpp"
+#include "Utils.hpp"
 
 namespace ElasticitySolver {
 //begin namespace ElasticitySolver
 using namespace dealii;
 namespace bc = BoundaryConditions;
+namespace ut = Utils;
 
 struct PointHistory {
     SymmetricTensor<2, DIM> old_stress;

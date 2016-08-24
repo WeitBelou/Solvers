@@ -6,74 +6,9 @@
 
 using namespace ElasticitySolver;
 
-Tensor<2, 3> ElasticitySolver::get_rotation_matrix(const std::vector<Tensor<1, 3> > &grad_u)
-{
-    const Point<3> curl(grad_u[2][1] - grad_u[1][2],
-                        grad_u[0][2] - grad_u[2][0],
-                        grad_u[1][0] - grad_u[0][1]);
-
-    const double angle = std::atan(curl.norm());
-
-    if (angle < 1e-9) {
-        static const double rotation[3][3] = {{1, 0, 0},
-            {0, 1, 0},
-            {0, 0, 1}
-        };
-        static const Tensor<2, 3> rot(rotation);
-        return rot;
-    }
-
-    const double s = std::sin(angle);
-    const double c = std::cos(angle);
-    const double t = 1 - c;
-
-    const Point<3> axis = curl / curl.norm();
-
-    const double rotation[3][3] = {
-        {
-            t *axis[0] *axis[0] + c,
-            t *axis[0] *axis[1] + s *axis[2],
-            t *axis[0] *axis[2] - s *axis[1]
-        },
-        {
-            t *axis[0] *axis[1] - s *axis[2],
-            t *axis[0] *axis[1] + c,
-            t *axis[1] *axis[2] + s *axis[0]
-        },
-        {
-            t *axis[0] *axis[2] + s *axis[1],
-            t *axis[1] *axis[1] - s *axis[0],
-            t *axis[2] *axis[2] + c
-        }
-    };
-
-    return Tensor<2, 3, double>(rotation);
-}
-
-SymmetricTensor<4, DIM> ElasticitySolver::get_stress_strain_tensor(const double lambda,
-                                                                   const double mu)
-{
-    auto d = [](size_t i, size_t j) {
-        return (i == j) ? (1.0) : (0.0);
-    };
-
-    SymmetricTensor<4, DIM> stress_strain;
-    for (size_t i = 0; i < DIM; ++i) {
-        for (size_t j = 0; j < DIM; ++j) {
-            for (size_t k = 0; k < DIM; ++k) {
-                for (size_t l = 0; l < DIM; ++l) {
-                    stress_strain[i][j][k][l] = mu * (d(i, k) * d(j, l) + d(i, l) * d(j, k))
-                                                + lambda * d(i, j) * d(k, l);
-                }
-            }
-        }
-    }
-    return stress_strain;
-}
-
-
-const SymmetricTensor<4, DIM> TopLevel::stress_strain_tensor = get_stress_strain_tensor(9.695e10,
-                                                                                        7.617e10);
+const SymmetricTensor<4, DIM> TopLevel::stress_strain_tensor = ut::get_stress_strain_tensor(
+                                                                   9.695e10,
+                                                                   7.617e10);
 
 TopLevel::TopLevel(Triangulation<DIM> &triangulation,
                    const FESystem<DIM> &fe,
@@ -283,9 +218,9 @@ void TopLevel::update_quadrature_point_history()
         for (size_t q = 0; q < quadrature->size(); ++q) {
             const SymmetricTensor<2, DIM> new_stress = local_quadrature_points_history[q].old_stress
                                                        + stress_strain_tensor
-                                                       * get_strain(displacement_increment_grads[q]);
+                                                       * ut::get_strain(displacement_increment_grads[q]);
 
-            const Tensor<2, DIM> rotation = get_rotation_matrix(displacement_increment_grads[q]);
+            const Tensor<2, DIM> rotation = ut::get_rotation_matrix(displacement_increment_grads[q]);
             const SymmetricTensor<2, DIM> rotated_new_stress = symmetrize(transpose(rotation)
                                                                           * static_cast<Tensor<2, DIM>>(new_stress)
                                                                           * rotation);
@@ -332,8 +267,8 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
         for (size_t j = 0; j < dofs_per_cell; ++j) {
             for (size_t q = 0; q < n_q_points; ++q) {
                 const SymmetricTensor<2, DIM>
-                eps_phi_i = get_strain(scratch_data.fe_values, i, q),
-                eps_phi_j = get_strain(scratch_data.fe_values, j, q);
+                eps_phi_i = ut::get_strain(scratch_data.fe_values, i, q),
+                eps_phi_j = ut::get_strain(scratch_data.fe_values, j, q);
 
                 copy_data.cell_matrix(i, j) += (eps_phi_i * stress_strain_tensor * eps_phi_j
                                                 * scratch_data.fe_values.JxW(q));
@@ -356,7 +291,7 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
                                       * scratch_data.fe_values.shape_value(i, q)
                                       -
                                       old_stress *
-                                      get_strain(scratch_data.fe_values, i, q))
+                                      ut::get_strain(scratch_data.fe_values, i, q))
                                      * scratch_data.fe_values.JxW(q);
         }
     }
