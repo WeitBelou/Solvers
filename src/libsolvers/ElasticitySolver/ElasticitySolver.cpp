@@ -9,16 +9,16 @@ using namespace ElasticitySolver;
 Tensor<2, 3> ElasticitySolver::get_rotation_matrix(const std::vector<Tensor<1, 3> > &grad_u)
 {
     const Point<3> curl(grad_u[2][1] - grad_u[1][2],
-            grad_u[0][2] - grad_u[2][0],
-            grad_u[1][0] - grad_u[0][1]);
+                        grad_u[0][2] - grad_u[2][0],
+                        grad_u[1][0] - grad_u[0][1]);
 
     const double angle = std::atan(curl.norm());
 
-    if (angle < 1e-9)
-    {
+    if (angle < 1e-9) {
         static const double rotation[3][3] = {{1, 0, 0},
-                                              {0, 1, 0},
-                                              {0, 0, 1}};
+            {0, 1, 0},
+            {0, 0, 1}
+        };
         static const Tensor<2, 3> rot(rotation);
         return rot;
     }
@@ -29,43 +29,39 @@ Tensor<2, 3> ElasticitySolver::get_rotation_matrix(const std::vector<Tensor<1, 3
 
     const Point<3> axis = curl / curl.norm();
 
-    const double rotation[3][3] =
-    {{
-         t * axis[0] * axis[0] + c,
-         t * axis[0] * axis[1] + s * axis[2],
-         t * axis[0] * axis[2] - s * axis[1]
-     },
-     {
-         t * axis[0] * axis[1] - s * axis[2],
-         t * axis[0] * axis[1] + c,
-         t * axis[1] * axis[2] + s * axis[0]
-     },
-     {
-         t * axis[0] * axis[2] + s * axis[1],
-         t * axis[1] * axis[1] - s * axis[0],
-         t * axis[2] * axis[2] + c
-     }
+    const double rotation[3][3] = {
+        {
+            t *axis[0] *axis[0] + c,
+            t *axis[0] *axis[1] + s *axis[2],
+            t *axis[0] *axis[2] - s *axis[1]
+        },
+        {
+            t *axis[0] *axis[1] - s *axis[2],
+            t *axis[0] *axis[1] + c,
+            t *axis[1] *axis[2] + s *axis[0]
+        },
+        {
+            t *axis[0] *axis[2] + s *axis[1],
+            t *axis[1] *axis[1] - s *axis[0],
+            t *axis[2] *axis[2] + c
+        }
     };
 
     return Tensor<2, 3, double>(rotation);
 }
 
-SymmetricTensor<4, DIM> ElasticitySolver::get_stress_strain_tensor(const double lambda, const double mu)
+SymmetricTensor<4, DIM> ElasticitySolver::get_stress_strain_tensor(const double lambda,
+                                                                   const double mu)
 {
-    auto d = [](size_t i, size_t j)
-    {
+    auto d = [](size_t i, size_t j) {
         return (i == j) ? (1.0) : (0.0);
     };
 
     SymmetricTensor<4, DIM> stress_strain;
-    for (size_t i = 0; i < DIM; ++i)
-    {
-        for (size_t j = 0; j < DIM; ++j)
-        {
-            for (size_t k = 0; k < DIM; ++k)
-            {
-                for (size_t l = 0; l < DIM; ++l)
-                {
+    for (size_t i = 0; i < DIM; ++i) {
+        for (size_t j = 0; j < DIM; ++j) {
+            for (size_t k = 0; k < DIM; ++k) {
+                for (size_t l = 0; l < DIM; ++l) {
                     stress_strain[i][j][k][l] = mu * (d(i, k) * d(j, l) + d(i, l) * d(j, k))
                                                 + lambda * d(i, j) * d(k, l);
                 }
@@ -76,7 +72,8 @@ SymmetricTensor<4, DIM> ElasticitySolver::get_stress_strain_tensor(const double 
 }
 
 
-const SymmetricTensor<4, DIM> TopLevel::stress_strain_tensor = get_stress_strain_tensor(9.695e10, 7.617e10);
+const SymmetricTensor<4, DIM> TopLevel::stress_strain_tensor = get_stress_strain_tensor(9.695e10,
+                                                                                        7.617e10);
 
 TopLevel::TopLevel(Triangulation<DIM> &triangulation,
                    const FESystem<DIM> &fe,
@@ -111,8 +108,7 @@ void TopLevel::run()
 
     do_initial_timestep();
 
-    while (present_time < end_time)
-    {
+    while (present_time < end_time) {
         do_timestep();
     }
 }
@@ -124,19 +120,15 @@ void TopLevel::do_initial_timestep()
 
     std::cout << "Timestep " << timestep_no << " at time " << present_time << std::endl;
 
-    for (size_t cycle = 0; cycle < 1; ++cycle)
-    {
+    for (size_t cycle = 0; cycle < 1; ++cycle) {
         std::cout << "    Cycle " << cycle << ':' << std::endl;
 
         dof_handler.distribute_dofs(*fe);
         std::cout << "    Number of dofs: " << dof_handler.n_dofs() << std::endl;
 
-        if (cycle == 0)
-        {
+        if (cycle == 0) {
             setup_quadrature_point_history();
-        }
-        else
-        {
+        } else {
             refine_grid();
         }
 
@@ -158,8 +150,7 @@ void TopLevel::do_timestep()
 
     std::cout << "Timestep " << timestep_no << " at time " << present_time << std::endl;
 
-    if (present_time > end_time)
-    {
+    if (present_time > end_time) {
         present_timestep -= (present_time - end_time);
         present_time = end_time;
     }
@@ -175,7 +166,7 @@ void TopLevel::refine_grid()
 {
     Vector<float> error_per_cell(triangulation->n_active_cells());
     KellyErrorEstimator<DIM>::estimate(dof_handler,
-                                       QGauss<DIM - 1>(2),
+                                       QGauss < DIM - 1 > (2),
                                        typename FunctionMap<DIM>::type(),
                                        incremental_displacement,
                                        error_per_cell,
@@ -208,14 +199,12 @@ void TopLevel::solve_timestep()
 void TopLevel::assemble_linear_system(TopLevel::LinearSystem &linear_system)
 {
     auto assemble_system_func = [this](typename DoFHandler<DIM>::active_cell_iterator cell,
-                                       AssemblyScratchData &scratch_data,
-                                       AssemblyCopyData &copy_data)
-    {
+                                       AssemblyScratchData & scratch_data,
+    AssemblyCopyData & copy_data) {
         this->local_assemble_system(cell, scratch_data, copy_data);
     };
 
-    auto copy_local_to_global_func = [this, &linear_system](const AssemblyCopyData &copy_data)
-    {
+    auto copy_local_to_global_func = [this, &linear_system](const AssemblyCopyData & copy_data) {
         this->copy_local_to_global(copy_data, linear_system);
     };
 
@@ -230,7 +219,7 @@ void TopLevel::assemble_linear_system(TopLevel::LinearSystem &linear_system)
 
     boundary_conditions->update(present_timestep);
     std::map<types::global_dof_index, double> boundary_values
-            = boundary_conditions->interpolate(dof_handler);
+        = boundary_conditions->interpolate(dof_handler);
 
     MatrixTools::apply_boundary_values(boundary_values,
                                        linear_system.matrix,
@@ -269,8 +258,7 @@ void TopLevel::setup_quadrature_point_history()
     quadrature_point_history.resize(n_cells * quadrature->size());
 
     size_t history_index = 0;
-    for (auto &&cell : triangulation->active_cell_iterators())
-    {
+    for (auto && cell : triangulation->active_cell_iterators()) {
         cell->set_user_pointer(&quadrature_point_history[history_index]);
         history_index += quadrature->size();
     }
@@ -282,21 +270,20 @@ void TopLevel::update_quadrature_point_history()
     FEValues<DIM> fe_values(*fe, *quadrature,
                             update_values | update_gradients);
     std::vector<std::vector<Tensor<1, DIM>>>
-        displacement_increment_grads(quadrature->size(), std::vector<Tensor<1, DIM>>(DIM));
-    for (auto &&cell : dof_handler.active_cell_iterators())
-    {
-        PointHistory *local_quadrature_points_history = reinterpret_cast<PointHistory *>(cell->user_pointer());
+    displacement_increment_grads(quadrature->size(), std::vector<Tensor<1, DIM>>(DIM));
+    for (auto && cell : dof_handler.active_cell_iterators()) {
+        PointHistory *local_quadrature_points_history = reinterpret_cast<PointHistory *>
+                                                        (cell->user_pointer());
         Assert(local_quadrature_points_history >= &quadrature_point_history.front(), ExcInternalError());
         Assert(local_quadrature_points_history < &quadrature_point_history.back(), ExcInternalError());
 
         fe_values.reinit(cell);
         fe_values.get_function_gradients(incremental_displacement,
                                          displacement_increment_grads);
-        for (size_t q = 0; q < quadrature->size(); ++q)
-        {
+        for (size_t q = 0; q < quadrature->size(); ++q) {
             const SymmetricTensor<2, DIM> new_stress = local_quadrature_points_history[q].old_stress
                                                        + stress_strain_tensor
-                                                         * get_strain(displacement_increment_grads[q]);
+                                                       * get_strain(displacement_increment_grads[q]);
 
             const Tensor<2, DIM> rotation = get_rotation_matrix(displacement_increment_grads[q]);
             const SymmetricTensor<2, DIM> rotated_new_stress = symmetrize(transpose(rotation)
@@ -311,17 +298,13 @@ void TopLevel::move_mesh()
     std::cout << "    Moving mesh..." << std::flush;
 
     std::vector<bool> vertex_touched(triangulation->n_vertices(), false);
-    for (auto &&cell : dof_handler.active_cell_iterators())
-    {
-        for (size_t v = 0; v < GeometryInfo<DIM>::vertices_per_cell; ++v)
-        {
-            if (vertex_touched[cell->vertex_index(v)] == false)
-            {
+    for (auto && cell : dof_handler.active_cell_iterators()) {
+        for (size_t v = 0; v < GeometryInfo<DIM>::vertices_per_cell; ++v) {
+            if (vertex_touched[cell->vertex_index(v)] == false) {
                 vertex_touched[cell->vertex_index(v)] = true;
 
                 Point<DIM> vertex_displacement;
-                for (size_t d = 0; d < DIM; ++d)
-                {
+                for (size_t d = 0; d < DIM; ++d) {
                     vertex_displacement[d] = incremental_displacement(cell->vertex_dof_index(v, d));
                 }
                 cell->vertex(v) += vertex_displacement;
@@ -345,15 +328,12 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
     copy_data.local_dofs_indices.resize(dofs_per_cell);
     scratch_data.fe_values.reinit(cell);
 
-    for (size_t i = 0; i < dofs_per_cell; ++i)
-    {
-        for (size_t j = 0; j < dofs_per_cell; ++j)
-        {
-            for (size_t q = 0; q < n_q_points; ++q)
-            {
+    for (size_t i = 0; i < dofs_per_cell; ++i) {
+        for (size_t j = 0; j < dofs_per_cell; ++j) {
+            for (size_t q = 0; q < n_q_points; ++q) {
                 const SymmetricTensor<2, DIM>
-                    eps_phi_i = get_strain(scratch_data.fe_values, i, q),
-                    eps_phi_j = get_strain(scratch_data.fe_values, j, q);
+                eps_phi_i = get_strain(scratch_data.fe_values, i, q),
+                eps_phi_j = get_strain(scratch_data.fe_values, j, q);
 
                 copy_data.cell_matrix(i, j) += (eps_phi_i * stress_strain_tensor * eps_phi_j
                                                 * scratch_data.fe_values.JxW(q));
@@ -364,14 +344,13 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
     std::vector<Vector<double>> body_force_values(n_q_points, Vector<double>(DIM));
     body_force->vector_value_list(scratch_data.fe_values.get_quadrature_points(), body_force_values);
 
-    const PointHistory *local_quadrature_points_data = reinterpret_cast<PointHistory *>(cell->user_pointer());
+    const PointHistory *local_quadrature_points_data = reinterpret_cast<PointHistory *>
+                                                       (cell->user_pointer());
 
-    for (size_t i = 0; i < dofs_per_cell; ++i)
-    {
+    for (size_t i = 0; i < dofs_per_cell; ++i) {
         size_t component_i = fe->system_to_component_index(i).first;
 
-        for (size_t q = 0; q < n_q_points; ++q)
-        {
+        for (size_t q = 0; q < n_q_points; ++q) {
             const SymmetricTensor<2, DIM> &old_stress = local_quadrature_points_data[q].old_stress;
             copy_data.cell_rhs(i) += (body_force_values[q](component_i)
                                       * scratch_data.fe_values.shape_value(i, q)
@@ -386,7 +365,8 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
 }
 
 void
-TopLevel::copy_local_to_global(const TopLevel::AssemblyCopyData &copy_data, TopLevel::LinearSystem &linear_system) const
+TopLevel::copy_local_to_global(const TopLevel::AssemblyCopyData &copy_data,
+                               TopLevel::LinearSystem &linear_system) const
 {
     linear_system.hanging_node_constraints.distribute_local_to_global(copy_data.cell_matrix,
                                                                       copy_data.cell_rhs,
@@ -427,8 +407,8 @@ TopLevel::AssemblyScratchData::AssemblyScratchData(const FiniteElement<DIM> &fe,
                                                    const Quadrature<DIM> &quadrature)
     :
     fe_values(fe, quadrature,
-              update_values | update_gradients |
-              update_quadrature_points | update_JxW_values)
+             update_values | update_gradients |
+             update_quadrature_points | update_JxW_values)
 {
 
 }
@@ -436,6 +416,6 @@ TopLevel::AssemblyScratchData::AssemblyScratchData(const FiniteElement<DIM> &fe,
 TopLevel::AssemblyScratchData::AssemblyScratchData(const AssemblyScratchData &scratch)
     :
     fe_values(scratch.fe_values.get_fe(),
-              scratch.fe_values.get_quadrature(),
-              scratch.fe_values.get_update_flags())
+             scratch.fe_values.get_quadrature(),
+             scratch.fe_values.get_update_flags())
 {}

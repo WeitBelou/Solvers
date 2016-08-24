@@ -15,24 +15,21 @@ FunctionTimeBoundaryConditions::FunctionTimeBoundaryConditions(const std::map<ty
 {
     this->boundary_functions_map = boundary_values_map;
 
-    for (auto item : this->boundary_functions_map)
-    {
+    for (auto item : this->boundary_functions_map) {
         item.second->set_time(0.0);
     }
 }
 
 void FunctionTimeBoundaryConditions::reinit(double present_time)
 {
-    for (auto item : this->boundary_functions_map)
-    {
+    for (auto item : this->boundary_functions_map) {
         item.second->set_time(present_time);
     }
 }
 
 void FunctionTimeBoundaryConditions::update(double present_timestep)
 {
-    for (auto item : this->boundary_functions_map)
-    {
+    for (auto item : this->boundary_functions_map) {
         item.second->advance_time(present_timestep);
     }
 }
@@ -42,8 +39,7 @@ FunctionTimeBoundaryConditions::interpolate(const DoFHandler<DIM> &dof_handler)
 {
     std::map<types::global_dof_index, double> temp;
 
-    for (auto item : boundary_functions_map)
-    {
+    for (auto item : boundary_functions_map) {
         VectorTools::interpolate_boundary_values (dof_handler,
                                                   item.first,
                                                   *item.second,
@@ -60,7 +56,7 @@ BaseBoundary *FunctionTimeBoundaryConditions::function(types::boundary_id id)
 }
 
 //
-BaseBoundary::BaseBoundary(const ComponentMask & mask)
+BaseBoundary::BaseBoundary(const ComponentMask &mask)
     :
     Function<DIM>(DIM),
     mask(mask)
@@ -79,7 +75,8 @@ BaseBoundary::~BaseBoundary()
 }
 
 //
-IncrementalBoundaryValues::IncrementalBoundaryValues(const Point<DIM> &velocity, const ComponentMask &mask)
+IncrementalBoundaryValues::IncrementalBoundaryValues(const Point<DIM> &velocity,
+                                                     const ComponentMask &mask)
     :
     BaseBoundary(mask),
     velocity(velocity)
@@ -95,8 +92,7 @@ void IncrementalBoundaryValues::advance_time(double present_timestep)
 void IncrementalBoundaryValues::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
 {
     Assert(values.size() == DIM, ExcDimensionMismatch(values.size(), DIM));
-    for (size_t i = 0; i < DIM; ++i)
-    {
+    for (size_t i = 0; i < DIM; ++i) {
         values(i) = velocity(i) * present_timestep;
     }
 }
@@ -106,8 +102,7 @@ void IncrementalBoundaryValues::vector_value_list(const std::vector<Point<DIM>> 
     const unsigned int n_points = points.size();
     Assert (value_list.size() == n_points,
             ExcDimensionMismatch(value_list.size(), n_points));
-    for (unsigned int p = 0; p < n_points; ++p)
-    {
+    for (unsigned int p = 0; p < n_points; ++p) {
         IncrementalBoundaryValues::vector_value(points[p],
                                                 value_list[p]);
     }

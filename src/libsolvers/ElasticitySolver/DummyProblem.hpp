@@ -8,8 +8,7 @@
 #include "ElasticitySolver.hpp"
 
 #include "global.hpp"
-namespace DummyProblem
-{
+namespace DummyProblem {
 
 using namespace dealii;
 
