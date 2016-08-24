@@ -40,20 +40,6 @@ void FunctionTimeBoundaryConditions::update(double present_timestep)
 std::map<types::global_dof_index, double>
 FunctionTimeBoundaryConditions::interpolate(const DoFHandler<DIM> &dof_handler)
 {
-    auto is_dirichlet = [] (const std::pair<types::boundary_id, BaseBoundary *> & boundary_cond)
-    {
-        return boundary_cond.second->type() == Dirichlet;
-    };
-
-    std::map<types::boundary_id, BaseBoundary *> filtered;
-    for (auto item : boundary_functions_map)
-    {
-        if (is_dirichlet(item))
-        {
-            filtered.insert(item);
-        }
-    }
-
     std::map<types::global_dof_index, double> temp;
 
     for (auto item : boundary_functions_map)
@@ -93,44 +79,9 @@ BaseBoundary::~BaseBoundary()
 }
 
 //
-DirichletBoundary::DirichletBoundary(const ComponentMask & mask)
+IncrementalBoundaryValues::IncrementalBoundaryValues(const Point<DIM> &velocity, const ComponentMask &mask)
     :
-    BaseBoundary (mask)
-{
-
-}
-
-DirichletBoundary::~DirichletBoundary()
-{
-
-}
-
-BoundaryType DirichletBoundary::type() const
-{
-    return Dirichlet;
-}
-
-//
-NeumannBoundary::NeumannBoundary(const ComponentMask &mask)
-    :
-    BaseBoundary (mask)
-{
-
-}
-
-NeumannBoundary::~NeumannBoundary()
-{
-
-}
-
-BoundaryType NeumannBoundary::type() const
-{
-    return Neumann;
-}
-
-IncrementalBoundaryValues::IncrementalBoundaryValues(const double velocity, const ComponentMask &mask)
-    :
-    DirichletBoundary(mask),
+    BaseBoundary(mask),
     velocity(velocity)
 {
     present_timestep = 1.0;
@@ -144,8 +95,10 @@ void IncrementalBoundaryValues::advance_time(double present_timestep)
 void IncrementalBoundaryValues::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
 {
     Assert(values.size() == DIM, ExcDimensionMismatch(values.size(), DIM));
-    values = 0;
-    values(DIM - 1) = -present_timestep * velocity;
+    for (size_t i = 0; i < DIM; ++i)
+    {
+        values(i) = velocity(i) * present_timestep;
+    }
 }
 void IncrementalBoundaryValues::vector_value_list(const std::vector<Point<DIM>> &points,
                                                   std::vector<Vector<double>> &value_list) const
@@ -164,7 +117,7 @@ void IncrementalBoundaryValues::vector_value_list(const std::vector<Point<DIM>> 
 
 ZeroFunctionBoundaryValues::ZeroFunctionBoundaryValues(const ComponentMask &mask)
     :
-    DirichletBoundary(mask)
+    BaseBoundary(mask)
 {
 
 }

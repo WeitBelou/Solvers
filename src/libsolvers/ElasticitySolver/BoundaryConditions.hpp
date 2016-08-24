@@ -20,15 +20,7 @@ namespace BoundaryConditions
 //begin namespace BoundaryConditions
 using namespace dealii;
 
-enum BoundaryType
-{
-    Dirichlet,
-    Neumann
-};
-
 class BaseBoundary;
-class DirichletBoundary;
-class NeumannBoundary;
 
 class FunctionTimeBoundaryConditions : public Subscriptor
 {
@@ -55,34 +47,15 @@ public:
 
     virtual ~BaseBoundary();
 
-    virtual BoundaryType type () const = 0;
-
 private:
     const ComponentMask mask;
 };
 
-class DirichletBoundary : public BaseBoundary
+class IncrementalBoundaryValues: public BaseBoundary
 {
 public:
-    DirichletBoundary (const ComponentMask & mask = ComponentMask());
-    virtual ~DirichletBoundary();
-
-    virtual BoundaryType type () const override;
-};
-
-class NeumannBoundary : public BaseBoundary
-{
-public:
-    NeumannBoundary (const ComponentMask & mask = ComponentMask());
-    virtual ~NeumannBoundary();
-
-    virtual BoundaryType type () const override;
-};
-
-class IncrementalBoundaryValues: public DirichletBoundary
-{
-public:
-    IncrementalBoundaryValues(const double velocity, const ComponentMask & mask = ComponentMask());
+    IncrementalBoundaryValues(const Point<DIM> & velocity,
+                              const ComponentMask & mask = ComponentMask());
 
     virtual void advance_time(double present_timestep) override;
 
@@ -93,11 +66,11 @@ public:
     vector_value_list(const std::vector<Point<DIM>> &points,
                       std::vector<Vector<double>> &value_list) const override;
 private:
-    const double velocity;
+    const Point<DIM> velocity;
     double present_timestep;
 };
 
-class ZeroFunctionBoundaryValues : public DirichletBoundary
+class ZeroFunctionBoundaryValues : public BaseBoundary
 {
 public:
     ZeroFunctionBoundaryValues (const ComponentMask & mask = ComponentMask());

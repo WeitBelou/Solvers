@@ -19,7 +19,7 @@ void ::DummyProblem::run_pipe_task()
 
     FEValuesExtractors::Scalar z_component(DIM - 1);
     ComponentMask z_mask = fe.component_mask(z_component);
-    bc::IncrementalBoundaryValues inc_bv(0.1, z_mask);
+    bc::IncrementalBoundaryValues inc_bv({0, 0, -0.1}, z_mask);
     bc::ZeroFunctionBoundaryValues zero_bv;
     bc::FunctionTimeBoundaryConditions boundary_conditions({
                                                                std::make_pair(0, &zero_bv),
