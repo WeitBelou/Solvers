@@ -50,32 +50,10 @@ void TopLevel::run()
 
 void TopLevel::do_initial_timestep()
 {
-    present_time += present_timestep;
-    ++timestep_no;
+    dof_handler.distribute_dofs(*fe);
+    setup_quadrature_point_history();
 
-    std::cout << "Timestep " << timestep_no << " at time " << present_time << std::endl;
-
-    for (size_t cycle = 0; cycle < 1; ++cycle) {
-        std::cout << "    Cycle " << cycle << ':' << std::endl;
-
-        dof_handler.distribute_dofs(*fe);
-        std::cout << "    Number of dofs: " << dof_handler.n_dofs() << std::endl;
-
-        if (cycle == 0) {
-            setup_quadrature_point_history();
-        } else {
-            refine_grid();
-        }
-
-        std::cout << "    Number of active cells: " << triangulation->n_active_cells() << std::endl;
-        solve_timestep();
-
-    }
-
-    move_mesh();
-    output_results();
-
-    std::cout << std::endl;
+    do_timestep();
 }
 
 void TopLevel::do_timestep()
@@ -95,23 +73,6 @@ void TopLevel::do_timestep()
     output_results();
 
     std::cout << std::endl;
-}
-
-void TopLevel::refine_grid()
-{
-    Vector<float> error_per_cell(triangulation->n_active_cells());
-    KellyErrorEstimator<DIM>::estimate(dof_handler,
-                                       QGauss < DIM - 1 > (2),
-                                       typename FunctionMap<DIM>::type(),
-                                       incremental_displacement,
-                                       error_per_cell,
-                                       ComponentMask(),
-                                       0);
-
-    GridRefinement::refine_and_coarsen_fixed_number(*triangulation, error_per_cell,
-                                                    0.35, 0.03);
-    triangulation->execute_coarsening_and_refinement();
-    setup_quadrature_point_history();
 }
 
 void TopLevel::solve_timestep()
@@ -161,24 +122,6 @@ void TopLevel::assemble_linear_system(TopLevel::LinearSystem &linear_system)
                                        incremental_displacement,
                                        linear_system.rhs,
                                        false);
-}
-void TopLevel::output_results() const
-{
-    DataOut<DIM> data_out;
-    data_out.attach_dof_handler(dof_handler);
-
-    std::vector<std::string> solution_names;
-
-    solution_names.push_back("delta_x");
-    solution_names.push_back("delta_y");
-    solution_names.push_back("delta_z");
-
-    data_out.add_data_vector(incremental_displacement, solution_names);
-
-    data_out.build_patches();
-    std::string filename = "solution" + Utilities::int_to_string(timestep_no, 4) + ".vtu";
-    std::ofstream output(filename);
-    data_out.write_vtu(output);
 }
 
 void TopLevel::setup_quadrature_point_history()
@@ -308,6 +251,25 @@ TopLevel::copy_local_to_global(const TopLevel::AssemblyCopyData &copy_data,
                                                                       copy_data.local_dofs_indices,
                                                                       linear_system.matrix,
                                                                       linear_system.rhs);
+}
+
+void TopLevel::output_results() const
+{
+    DataOut<DIM> data_out;
+    data_out.attach_dof_handler(dof_handler);
+
+    std::vector<std::string> solution_names;
+
+    solution_names.push_back("delta_x");
+    solution_names.push_back("delta_y");
+    solution_names.push_back("delta_z");
+
+    data_out.add_data_vector(incremental_displacement, solution_names);
+
+    data_out.build_patches();
+    std::string filename = "solution" + Utilities::int_to_string(timestep_no, 4) + ".vtu";
+    std::ofstream output(filename);
+    data_out.write_vtu(output);
 }
 
 TopLevel::LinearSystem::LinearSystem(const DoFHandler<DIM> &dof_handler)

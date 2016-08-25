@@ -97,7 +97,6 @@ private:
     double end_time;
 
     size_t timestep_no;
-    void refine_grid();
     void setup_quadrature_point_history();
     void update_quadrature_point_history();
 
