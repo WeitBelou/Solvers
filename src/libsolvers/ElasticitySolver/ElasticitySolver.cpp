@@ -21,7 +21,8 @@ TopLevel::TopLevel(Triangulation<DIM> &triangulation,
     quadrature(&quadrature),
     dof_handler(triangulation),
     body_force(&body_force),
-    boundary_conditions(&boundary_conditions)
+    boundary_conditions(&boundary_conditions),
+    quadrature_points_history(fe, quadrature)
 {
 
 }
@@ -51,7 +52,7 @@ void TopLevel::run()
 void TopLevel::do_initial_timestep()
 {
     dof_handler.distribute_dofs(*fe);
-    setup_quadrature_point_history();
+    quadrature_points_history.setup(*triangulation);
 
     do_timestep();
 }
@@ -88,7 +89,7 @@ void TopLevel::solve_timestep()
     std::cout << std::endl;
 
     std::cout << "    Updating quadrature points history..." << std::flush;
-    update_quadrature_point_history();
+    quadrature_points_history.update(dof_handler, incremental_displacement, stress_strain_tensor);
     std::cout << std::endl;
 }
 
@@ -124,53 +125,6 @@ void TopLevel::assemble_linear_system(TopLevel::LinearSystem &linear_system)
                                        false);
 }
 
-void TopLevel::setup_quadrature_point_history()
-{
-    size_t n_cells = triangulation->n_active_cells();
-
-    triangulation->clear_user_data();
-    {
-        std::vector<PointHistory> tmp;
-        tmp.swap(quadrature_point_history);
-    }
-    quadrature_point_history.resize(n_cells * quadrature->size());
-
-    size_t history_index = 0;
-    for (auto && cell : triangulation->active_cell_iterators()) {
-        cell->set_user_pointer(&quadrature_point_history[history_index]);
-        history_index += quadrature->size();
-    }
-    Assert(history_index == quadrature_point_history.size(), ExcInternalError());
-}
-
-void TopLevel::update_quadrature_point_history()
-{
-    FEValues<DIM> fe_values(*fe, *quadrature,
-                            update_values | update_gradients);
-    std::vector<std::vector<Tensor<1, DIM>>>
-    displacement_increment_grads(quadrature->size(), std::vector<Tensor<1, DIM>>(DIM));
-    for (auto && cell : dof_handler.active_cell_iterators()) {
-        PointHistory *local_quadrature_points_history = reinterpret_cast<PointHistory *>
-                                                        (cell->user_pointer());
-        Assert(local_quadrature_points_history >= &quadrature_point_history.front(), ExcInternalError());
-        Assert(local_quadrature_points_history < &quadrature_point_history.back(), ExcInternalError());
-
-        fe_values.reinit(cell);
-        fe_values.get_function_gradients(incremental_displacement,
-                                         displacement_increment_grads);
-        for (size_t q = 0; q < quadrature->size(); ++q) {
-            const SymmetricTensor<2, DIM> new_stress = local_quadrature_points_history[q].old_stress
-                                                       + stress_strain_tensor
-                                                       * ut::get_strain(displacement_increment_grads[q]);
-
-            const Tensor<2, DIM> rotation = ut::get_rotation_matrix(displacement_increment_grads[q]);
-            const SymmetricTensor<2, DIM> rotated_new_stress = symmetrize(transpose(rotation)
-                                                                          * static_cast<Tensor<2, DIM>>(new_stress)
-                                                                          * rotation);
-            local_quadrature_points_history[q].old_stress = rotated_new_stress;
-        }
-    }
-}
 void TopLevel::move_mesh()
 {
     std::cout << "    Moving mesh..." << std::flush;
@@ -222,8 +176,8 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
     std::vector<Vector<double>> body_force_values(n_q_points, Vector<double>(DIM));
     body_force->vector_value_list(scratch_data.fe_values.get_quadrature_points(), body_force_values);
 
-    const PointHistory *local_quadrature_points_data = reinterpret_cast<PointHistory *>
-                                                       (cell->user_pointer());
+    const ph::PointHistory *local_quadrature_points_data = reinterpret_cast<ph::PointHistory *>
+                                                           (cell->user_pointer());
 
     for (size_t i = 0; i < dofs_per_cell; ++i) {
         size_t component_i = fe->system_to_component_index(i).first;

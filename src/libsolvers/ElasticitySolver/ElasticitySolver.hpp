@@ -54,6 +54,7 @@
 
 #include "global.hpp"
 #include "BoundaryConditions.hpp"
+#include "QuadraturePointsHistory.hpp"
 #include "Utils.hpp"
 
 namespace ElasticitySolver {
@@ -61,10 +62,7 @@ namespace ElasticitySolver {
 using namespace dealii;
 namespace bc = BoundaryConditions;
 namespace ut = Utils;
-
-struct PointHistory {
-    SymmetricTensor<2, DIM> old_stress;
-};
+namespace ph = PointsHistory;
 
 class TopLevel
 {
@@ -89,7 +87,7 @@ private:
 
     Vector<double> incremental_displacement;
 
-    std::vector<PointHistory> quadrature_point_history;
+    ph::QuadraturePointsHistory quadrature_points_history;
     static const SymmetricTensor<4, DIM> stress_strain_tensor;
 
     double present_time;
@@ -97,8 +95,6 @@ private:
     double end_time;
 
     size_t timestep_no;
-    void setup_quadrature_point_history();
-    void update_quadrature_point_history();
 
     void do_initial_timestep();
     void do_timestep();
