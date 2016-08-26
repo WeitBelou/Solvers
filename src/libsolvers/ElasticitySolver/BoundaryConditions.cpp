@@ -1,8 +1,8 @@
 //
 // Created by ivan on 22.08.16.
 //
-#include <algorithm>
 #include <deal.II/lac/vector.h>
+
 #include <deal.II/numerics/vector_tools.h>
 
 #include "BoundaryConditions.hpp"

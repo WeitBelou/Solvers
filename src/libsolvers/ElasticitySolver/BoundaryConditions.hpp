@@ -5,12 +5,10 @@
 #ifndef SOLVERS_BOUNDARYCONDITIONS_HPP
 #define SOLVERS_BOUNDARYCONDITIONS_HPP
 
-#include <deal.II/base/function_lib.h>
 #include <deal.II/base/function.h>
 
-#include <deal.II/dofs/function_map.h>
-
 #include <deal.II/dofs/dof_handler.h>
+
 #include <deal.II/fe/component_mask.h>
 
 #include "global.hpp"

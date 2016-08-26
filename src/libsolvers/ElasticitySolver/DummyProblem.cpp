@@ -4,6 +4,11 @@
 
 #include "DummyProblem.hpp"
 
+#include <deal.II/grid/grid_generator.h>
+#include <deal.II/grid/manifold_lib.h>
+
+#include <deal.II/fe/fe_q.h>
+
 using namespace DummyProblem;
 namespace bc = BoundaryConditions;
 
