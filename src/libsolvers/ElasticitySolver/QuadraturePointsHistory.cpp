@@ -17,14 +17,15 @@ void PointsHistory::QuadraturePointsHistory::setup(Triangulation<DIM> &triangula
 
     triangulation.clear_user_data();
 
-    quadrature_points_history.resize(n_cells * quadrature->size());
+    quadrature_points_history.clear();
+    quadrature_points_history.resize(n_cells, std::vector<PointHistory>(quadrature->size()));
 
     size_t history_index = 0;
     for (auto && cell : triangulation.active_cell_iterators()) {
-        cell->set_user_pointer(&quadrature_points_history[history_index]);
-        history_index += quadrature->size();
+        cell->set_user_index(history_index);
+        history_index++;
     }
-    Assert(history_index == quadrature_points_history.size(), ExcInternalError());
+    Assert(history_index == n_cells, ExcInternalError());
 }
 
 void PointsHistory::QuadraturePointsHistory::update(const DoFHandler<DIM> &dof_handler,
@@ -37,10 +38,8 @@ void PointsHistory::QuadraturePointsHistory::update(const DoFHandler<DIM> &dof_h
     displacement_increment_grads(quadrature->size(), std::vector<Tensor<1, DIM>>(DIM));
 
     for (auto && cell : dof_handler.active_cell_iterators()) {
-        PointHistory *local_quadrature_points_history = reinterpret_cast<PointHistory *>
-                                                        (cell->user_pointer());
-        Assert(local_quadrature_points_history >= &quadrature_points_history.front(), ExcInternalError());
-        Assert(local_quadrature_points_history < &quadrature_points_history.back(), ExcInternalError());
+        std::vector<PointHistory> &local_quadrature_points_history =
+            quadrature_points_history[cell->user_index()];
 
         fe_values.reinit(cell);
         fe_values.get_function_gradients(incremental_displacement,
@@ -57,4 +56,11 @@ void PointsHistory::QuadraturePointsHistory::update(const DoFHandler<DIM> &dof_h
             local_quadrature_points_history[q].old_stress = rotated_new_stress;
         }
     }
+}
+
+const std::vector<PointsHistory::PointHistory>
+&PointsHistory::QuadraturePointsHistory::get_cell_quadrature_points_data(
+    const typename DoFHandler<DIM>::active_cell_iterator &cell) const
+{
+    return quadrature_points_history[cell->user_index()];
 }

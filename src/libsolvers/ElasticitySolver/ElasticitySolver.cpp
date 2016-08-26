@@ -176,8 +176,8 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
     std::vector<Vector<double>> body_force_values(n_q_points, Vector<double>(DIM));
     body_force->vector_value_list(scratch_data.fe_values.get_quadrature_points(), body_force_values);
 
-    const ph::PointHistory *local_quadrature_points_data = reinterpret_cast<ph::PointHistory *>
-                                                           (cell->user_pointer());
+    const std::vector<ph::PointHistory> &local_quadrature_points_data =
+        quadrature_points_history.get_cell_quadrature_points_data(cell);
 
     for (size_t i = 0; i < dofs_per_cell; ++i) {
         size_t component_i = fe->system_to_component_index(i).first;
