@@ -85,9 +85,9 @@ void PipeTask::write_pipe_grid(const std::string &file_name,
 
 void PipeTask::read_triangulation(Triangulation<DIM> &triangulation,
                                   std::string file_name,
-                                  GridIn::Format format)
+                                  GridIn<DIM>::Format format)
 {
-    GridIn grid_in;
+    GridIn<DIM> grid_in;
     grid_in.attach_triangulation(triangulation);
 
     std::ifstream in(file_name);

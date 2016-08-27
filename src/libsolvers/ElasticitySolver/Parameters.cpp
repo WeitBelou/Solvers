@@ -78,7 +78,7 @@ void Time::declare_parameters(ParameterHandler &prm)
         prm.declare_entry("Timestep", "1.0",
                           Patterns::Double(0.01),
                           "Timestep");
-        prm.declare_entry("End_time", "10.0",
+        prm.declare_entry("End time", "10.0",
                           Patterns::Double(1.0, 15.0),
                           "End time");
     }
@@ -90,7 +90,7 @@ void Time::parse_parameters(ParameterHandler &prm)
     prm.enter_subsection("Time");
     {
         timestep = prm.get_double("Timestep");
-        end_time = prm.get_double("End_time");
+        end_time = prm.get_double("End time");
     }
     prm.leave_subsection();
 }

@@ -21,7 +21,7 @@ void write_pipe_grid(const std::string &file_name,
                      GridOut::OutputFormat format = GridOut::OutputFormat::ucd);
 void read_triangulation(Triangulation<DIM> &triangulation,
                         std::string file_name,
-                        GridIn::Format format = GridIn::Format::ucd);
+                        GridIn<DIM>::Format format = GridIn<DIM>::Format::ucd);
 
 }
 
