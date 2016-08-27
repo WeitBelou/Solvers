@@ -6,28 +6,22 @@
 #define SOLVERS_DUMMYPROBLEM_HPP
 
 #include "ElasticitySolver.hpp"
-
+#include "Parameters.hpp"
 #include "global.hpp"
-namespace DummyProblem {
+
+#include <deal.II/grid/grid_in.h>
+#include <deal.II/grid/grid_out.h>
+namespace PipeTask {
 
 using namespace dealii;
 
-void run_pipe_task();
+void run_pipe_task(const Parameters::All &par);
 
-void set_triangulation(Triangulation<DIM> &triangulation);
-
-class BodyForce: public Function<DIM>
-{
-public:
-    BodyForce();
-    virtual void
-    vector_value(const Point<DIM> &p, Vector<double> &values) const override;
-
-    virtual void
-    vector_value_list(const std::vector<Point<DIM>> &points,
-                      std::vector<Vector<double>> &value_list) const override;
-
-};
+void write_pipe_grid(const std::string &file_name,
+                     GridOut::OutputFormat format = GridOut::OutputFormat::ucd);
+void read_triangulation(Triangulation<DIM> &triangulation,
+                        std::string file_name,
+                        GridIn::Format format = GridIn::Format::ucd);
 
 }
 

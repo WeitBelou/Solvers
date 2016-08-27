@@ -3,24 +3,29 @@
 //
 
 #include "DummyProblem.hpp"
+#include "BodyForce.hpp"
 
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/manifold_lib.h>
 
+#include <deal.II/grid/grid_in.h>
+#include <deal.II/grid/grid_out.h>
+
 #include <deal.II/fe/fe_q.h>
 
-using namespace DummyProblem;
+using namespace PipeTask;
 namespace bc = BoundaryConditions;
+namespace bf = BodyForce;
 
-void ::DummyProblem::run_pipe_task()
+void ::PipeTask::run_pipe_task(const Parameters::All &par)
 {
     Triangulation<DIM> triangulation;
-    set_triangulation(triangulation);
+    read_triangulation(triangulation, par.path_to_grid);
 
-    FESystem<DIM> fe(FE_Q<DIM>(1), DIM);
-    QGauss<DIM> quadrature(2);
+    FESystem<DIM> fe(FE_Q<DIM>(par.polynomial_degree), DIM);
+    QGauss<DIM> quadrature(par.quadrature_degree);
 
-    BodyForce body_force;
+    bf::GravityForce body_force;
 
     FEValuesExtractors::Scalar z_component(DIM - 1);
     ComponentMask z_mask = fe.component_mask(z_component);
@@ -36,8 +41,11 @@ void ::DummyProblem::run_pipe_task()
     top_level.run();
 }
 
-void DummyProblem::set_triangulation(Triangulation<DIM> &triangulation)
+void PipeTask::write_pipe_grid(const std::string &file_name,
+                               GridOut::OutputFormat format)
 {
+    Triangulation<DIM> triangulation;
+
     const double inner_radius = 0.8,
                  outer_radius = 1;
     GridGenerator::cylinder_shell(triangulation,
@@ -67,31 +75,22 @@ void DummyProblem::set_triangulation(Triangulation<DIM> &triangulation)
     triangulation.set_all_manifold_ids(0);
     triangulation.set_manifold(0, cylindrical_manifold);
     triangulation.refine_global(1);
+
+    GridOut grid_out;
+
+    std::ofstream out(file_name);
+
+    grid_out.write(triangulation, out, format);
 }
 
-BodyForce::BodyForce() : Function<DIM>(DIM)
+void PipeTask::read_triangulation(Triangulation<DIM> &triangulation,
+                                  std::string file_name,
+                                  GridIn::Format format)
 {
+    GridIn grid_in;
+    grid_in.attach_triangulation(triangulation);
 
-}
+    std::ifstream in(file_name);
 
-void BodyForce::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
-{
-    Assert(values.size() == DIM, ExcDimensionMismatch(values.size(), DIM));
-
-    const double g = 9.81;
-    const double rho = 7700;
-
-    values = 0;
-    values(DIM - 1) = -rho * g;
-}
-void BodyForce::vector_value_list(const std::vector<Point<DIM>> &points,
-                                  std::vector<Vector<double>> &value_list) const
-{
-    const size_t n_points = points.size();
-
-    Assert(value_list.size() == n_points, ExcDimensionMismatch(value_list.size(), n_points));
-
-    for (size_t p = 0; p < n_points; ++p) {
-        BodyForce::vector_value(points[p], value_list[p]);
-    }
+    grid_in.read(in, format);
 }
