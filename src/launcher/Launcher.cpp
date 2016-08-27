@@ -5,6 +5,7 @@
 
 #include "Launcher.h"
 #include "src/libsolvers/ElasticitySolver/DummyProblem.hpp"
+#include "src/libsolvers/ElasticitySolver/Parameters.hpp"
 
 Launcher::Launcher ()
 {
@@ -39,7 +40,14 @@ void Launcher::run ()
               << " from: " << bfs::canonical (taskName).remove_filename ()
               << std::endl;
 
-    DummyProblem::run_pipe_task();
+    Parameters::All prm(taskName.string());
+
+    if (!bfs::exists(prm.path_to_grid))
+    {
+        PipeTask::write_pipe_grid(prm.path_to_grid);
+    }
+
+    PipeTask::run_pipe_task(prm);
 
     std::cout << "Output will be writen in: " << bfs::canonical (outputDir)
               << std::endl;
