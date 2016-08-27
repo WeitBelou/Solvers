@@ -17,11 +17,9 @@ using namespace dealii;
 
 void run_pipe_task(const Parameters::All &par);
 
-void write_pipe_grid(const std::string &file_name,
-                     GridOut::OutputFormat format = GridOut::OutputFormat::ucd);
+void write_pipe_grid(const std::string &file_name);
 void read_triangulation(Triangulation<DIM> &triangulation,
-                        std::string file_name,
-                        GridIn<DIM>::Format format = GridIn<DIM>::Format::ucd);
+                        std::string file_name);
 
 }
 

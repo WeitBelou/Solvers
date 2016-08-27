@@ -41,8 +41,7 @@ void ::PipeTask::run_pipe_task(const Parameters::All &par)
     top_level.run();
 }
 
-void PipeTask::write_pipe_grid(const std::string &file_name,
-                               GridOut::OutputFormat format)
+void PipeTask::write_pipe_grid(const std::string &file_name)
 {
     Triangulation<DIM> triangulation;
 
@@ -80,17 +79,19 @@ void PipeTask::write_pipe_grid(const std::string &file_name,
 
     std::ofstream out(file_name);
 
-    grid_out.write(triangulation, out, format);
+    GridOutFlags::Msh msh_flags(true, true);
+    grid_out.set_flags(msh_flags);
+
+    grid_out.write_msh(triangulation, out);
 }
 
 void PipeTask::read_triangulation(Triangulation<DIM> &triangulation,
-                                  std::string file_name,
-                                  GridIn<DIM>::Format format)
+                                  std::string file_name)
 {
     GridIn<DIM> grid_in;
     grid_in.attach_triangulation(triangulation);
 
     std::ifstream in(file_name);
 
-    grid_in.read(in, format);
+    grid_in.read_msh(in);
 }
