@@ -1,0 +1,23 @@
+subsection Finite element system
+    set Polynomial degree = 1
+    set Quadrature order = 2
+end
+
+subsection Geometry
+    set Path to grid = /home/ivan/Code/Solvers/out/grid.msh
+end
+
+subsection Material
+    set Lambda = 9.695e10
+    set Mu = 7.617e10
+end
+
+subsection Time
+    set Timestep = 1.0
+    set End time = 10.0
+end
+
+subsection Boundary conditions
+    set Dirichlet boundary conditions = 0 : 0; 0; 0.1 * dt, \
+                                        1 : 0; 0; - 0.1 * dt
+end
