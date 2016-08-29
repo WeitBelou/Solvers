@@ -13,7 +13,7 @@
 using namespace PipeTask;
 namespace es = ElasticityEquation;
 
-void ::PipeTask::run_pipe_task(const ElasticityEquation::All &par)
+void ::PipeTask::run_pipe_task(const ElasticityEquation::Parameters &par)
 {
     Triangulation<DIM> triangulation;
     read_triangulation(triangulation, par.path_to_grid);
@@ -32,7 +32,7 @@ void ::PipeTask::run_pipe_task(const ElasticityEquation::All &par)
                                                                std::make_pair(1, &inc_bv)
                                                            });
 
-    es::TopLevel top_level(triangulation, fe, quadrature,
+    es::ElasticitySolver top_level(triangulation, fe, quadrature,
                                            body_force, boundary_conditions);
     top_level.run(par.timestep, par.end_time);
 }

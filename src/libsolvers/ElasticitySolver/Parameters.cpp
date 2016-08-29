@@ -95,7 +95,7 @@ void Time::parse_parameters(ParameterHandler &prm)
     prm.leave_subsection();
 }
 
-All::All(const std::string &input_file)
+Parameters::Parameters(const std::string &input_file)
 {
     ParameterHandler prm;
     declare_parameters(prm);
@@ -103,7 +103,7 @@ All::All(const std::string &input_file)
     parse_parameters(prm);
 }
 
-void All::declare_parameters(ParameterHandler &prm)
+void Parameters::declare_parameters(ParameterHandler &prm)
 {
     FiniteElementSystem::declare_parameters(prm);
     Geometry::declare_parameters(prm);
@@ -111,7 +111,7 @@ void All::declare_parameters(ParameterHandler &prm)
     Time::declare_parameters(prm);
 }
 
-void All::parse_parameters(ParameterHandler &prm)
+void Parameters::parse_parameters(ParameterHandler &prm)
 {
     FiniteElementSystem::parse_parameters(prm);
     Geometry::parse_parameters(prm);

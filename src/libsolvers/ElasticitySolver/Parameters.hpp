@@ -46,13 +46,13 @@ public:
     void parse_parameters(ParameterHandler &prm);
 };
 
-class All: public FiniteElementSystem,
-           public Geometry,
-           public Material,
-           public Time
+class Parameters: public FiniteElementSystem,
+                  public Geometry,
+                  public Material,
+                  public Time
 {
 public:
-    All(const std::string &input_file);
+    Parameters(const std::string &input_file);
 
     static void declare_parameters(ParameterHandler &prm);
     void parse_parameters(ParameterHandler &prm);

@@ -21,15 +21,14 @@
 
 using namespace ElasticityEquation;
 
-const SymmetricTensor<4, DIM> TopLevel::stress_strain_tensor = get_stress_strain_tensor(
-    9.695e10,
-    7.617e10);
+const SymmetricTensor<4, DIM> ElasticitySolver::stress_strain_tensor
+    = get_stress_strain_tensor(9.695e10, 7.617e10);
 
-TopLevel::TopLevel(Triangulation<DIM> &triangulation,
-                   const FESystem<DIM> &fe,
-                   const QGauss<DIM> &quadrature,
-                   const Function<DIM> &body_force,
-                   ElasticityEquation::FunctionTimeBoundaryConditions &boundary_conditions)
+ElasticitySolver::ElasticitySolver(Triangulation<DIM> &triangulation,
+                                   const FESystem<DIM> &fe,
+                                   const QGauss<DIM> &quadrature,
+                                   const Function<DIM> &body_force,
+                                   ElasticityEquation::FunctionTimeBoundaryConditions &boundary_conditions)
     :
     triangulation(&triangulation),
     fe(&fe),
@@ -42,12 +41,12 @@ TopLevel::TopLevel(Triangulation<DIM> &triangulation,
 
 }
 
-TopLevel::~TopLevel()
+ElasticitySolver::~ElasticitySolver()
 {
     dof_handler.clear();
 }
 
-void TopLevel::run(double timestep, double end_time)
+void ElasticitySolver::run(double timestep, double end_time)
 {
     present_time = 0.0;
     present_timestep = timestep;
@@ -65,7 +64,7 @@ void TopLevel::run(double timestep, double end_time)
     }
 }
 
-void TopLevel::do_initial_timestep()
+void ElasticitySolver::do_initial_timestep()
 {
     dof_handler.distribute_dofs(*fe);
     quadrature_points_history.setup(*triangulation);
@@ -73,7 +72,7 @@ void TopLevel::do_initial_timestep()
     do_timestep();
 }
 
-void TopLevel::do_timestep()
+void ElasticitySolver::do_timestep()
 {
     present_time += present_timestep;
     ++timestep_no;
@@ -93,7 +92,7 @@ void TopLevel::do_timestep()
     std::cout << std::endl;
 }
 
-void TopLevel::solve_timestep()
+void ElasticitySolver::solve_timestep()
 {
     std::cout << "    Assembling system..." << std::flush;
 
@@ -110,7 +109,7 @@ void TopLevel::solve_timestep()
     std::cout << std::endl;
 }
 
-void TopLevel::assemble_linear_system(TopLevel::LinearSystem &linear_system)
+void ElasticitySolver::assemble_linear_system(ElasticitySolver::LinearSystem &linear_system)
 {
     auto assemble_system_func = [this](typename DoFHandler<DIM>::active_cell_iterator cell,
                                        AssemblyScratchData &scratch_data,
@@ -144,7 +143,7 @@ void TopLevel::assemble_linear_system(TopLevel::LinearSystem &linear_system)
                                        false);
 }
 
-void TopLevel::move_mesh()
+void ElasticitySolver::move_mesh()
 {
     std::cout << "    Moving mesh..." << std::flush;
 
@@ -170,9 +169,9 @@ void TopLevel::move_mesh()
     std::cout << std::endl;
 }
 
-void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell_iterator &cell,
-                                     TopLevel::AssemblyScratchData &scratch_data,
-                                     TopLevel::AssemblyCopyData &copy_data) const
+void ElasticitySolver::local_assemble_system(const typename DoFHandler<DIM>::active_cell_iterator &cell,
+                                             ElasticitySolver::AssemblyScratchData &scratch_data,
+                                             ElasticitySolver::AssemblyCopyData &copy_data) const
 {
     size_t dofs_per_cell = fe->dofs_per_cell;
     size_t n_q_points = quadrature->size();
@@ -225,8 +224,8 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
 }
 
 void
-TopLevel::copy_local_to_global(const TopLevel::AssemblyCopyData &copy_data,
-                               TopLevel::LinearSystem &linear_system) const
+ElasticitySolver::copy_local_to_global(const ElasticitySolver::AssemblyCopyData &copy_data,
+                                       ElasticitySolver::LinearSystem &linear_system) const
 {
     linear_system.hanging_node_constraints.distribute_local_to_global(copy_data.cell_matrix,
                                                                       copy_data.cell_rhs,
@@ -235,7 +234,7 @@ TopLevel::copy_local_to_global(const TopLevel::AssemblyCopyData &copy_data,
                                                                       linear_system.rhs);
 }
 
-void TopLevel::output_results() const
+void ElasticitySolver::output_results() const
 {
     DataOut<DIM> data_out;
     data_out.attach_dof_handler(dof_handler);
@@ -254,7 +253,7 @@ void TopLevel::output_results() const
     data_out.write_vtu(output);
 }
 
-TopLevel::LinearSystem::LinearSystem(const DoFHandler<DIM> &dof_handler)
+ElasticitySolver::LinearSystem::LinearSystem(const DoFHandler<DIM> &dof_handler)
 {
     hanging_node_constraints.clear();
     DoFTools::make_hanging_node_constraints(dof_handler, hanging_node_constraints);
@@ -270,7 +269,7 @@ TopLevel::LinearSystem::LinearSystem(const DoFHandler<DIM> &dof_handler)
     rhs.reinit(dof_handler.n_dofs());
 }
 
-void TopLevel::LinearSystem::solve(Vector<double> &solution) const
+void ElasticitySolver::LinearSystem::solve(Vector<double> &solution) const
 {
     SolverControl solver_control(1000, 1e-12);
     SolverCG<> cg(solver_control);
@@ -282,8 +281,8 @@ void TopLevel::LinearSystem::solve(Vector<double> &solution) const
     hanging_node_constraints.distribute(solution);
 }
 
-TopLevel::AssemblyScratchData::AssemblyScratchData(const FiniteElement<DIM> &fe,
-                                                   const Quadrature<DIM> &quadrature)
+ElasticitySolver::AssemblyScratchData::AssemblyScratchData(const FiniteElement<DIM> &fe,
+                                                           const Quadrature<DIM> &quadrature)
     :
     fe_values(fe, quadrature,
               update_values | update_gradients |
@@ -292,7 +291,7 @@ TopLevel::AssemblyScratchData::AssemblyScratchData(const FiniteElement<DIM> &fe,
 
 }
 
-TopLevel::AssemblyScratchData::AssemblyScratchData(const AssemblyScratchData &scratch)
+ElasticitySolver::AssemblyScratchData::AssemblyScratchData(const AssemblyScratchData &scratch)
     :
     fe_values(scratch.fe_values.get_fe(),
               scratch.fe_values.get_quadrature(),

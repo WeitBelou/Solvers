@@ -41,15 +41,15 @@ namespace ElasticityEquation
 //begin namespace ElasticityEquation
 using namespace dealii;
 
-class TopLevel
+class ElasticitySolver
 {
 public:
-    TopLevel(Triangulation<DIM> &triangulation,
-             const FESystem<DIM> &fe,
-             const QGauss<DIM> &quadrature,
-             const Function<DIM> &body_force,
-             FunctionTimeBoundaryConditions &boundary_conditions);
-    ~TopLevel();
+    ElasticitySolver(Triangulation<DIM> &triangulation,
+                     const FESystem<DIM> &fe,
+                     const QGauss<DIM> &quadrature,
+                     const Function<DIM> &body_force,
+                     FunctionTimeBoundaryConditions &boundary_conditions);
+    ~ElasticitySolver();
     void run(double timestep, double end_time);
 
 private:
