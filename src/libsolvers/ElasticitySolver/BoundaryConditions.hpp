@@ -6,6 +6,7 @@
 #define SOLVERS_BOUNDARYCONDITIONS_HPP
 
 #include <deal.II/base/function.h>
+#include <deal.II/base/function_parser.h>
 
 #include <deal.II/dofs/dof_handler.h>
 
@@ -24,58 +25,36 @@ class FunctionTimeBoundaryConditions: public Subscriptor
 {
 public:
     FunctionTimeBoundaryConditions(const std::map<types::boundary_id,
-                                                  BaseBoundary *> &boundary_functions_map);
+                                                      std::vector<std::string>> &boundary_functions_map,
+                                       const double timestep);
 
     void reinit(double present_time);
     void update(double present_timestep);
 
     std::map<types::global_dof_index, double> interpolate(const DoFHandler<DIM> &dof_handler);
 
-    BaseBoundary *function(types::boundary_id id);
 private:
-    std::map<types::boundary_id, BaseBoundary *> boundary_functions_map;
+    std::map<types::boundary_id, BaseBoundary> boundary_functions_map;
 };
 
 class BaseBoundary: public Function<DIM>
 {
 public:
-    BaseBoundary(const ComponentMask &mask);
+    BaseBoundary(const std::vector<std::string> &function,
+                 const ComponentMask &mask = ComponentMask(),
+                 const double timestep = 1.0);
+    BaseBoundary(const BaseBoundary &other);
 
     ComponentMask get_mask();
+    virtual void vector_value(const Point<DIM> &p, Vector<double> &values) const override;
 
     virtual ~BaseBoundary();
 
 private:
     const ComponentMask mask;
-};
+    const std::vector<std::string> function;
 
-class IncrementalBoundaryValues: public BaseBoundary
-{
-public:
-    IncrementalBoundaryValues(const Point<DIM> &velocity,
-                              const ComponentMask &mask = ComponentMask());
-
-    virtual void advance_time(double present_timestep) override;
-
-    virtual void
-    vector_value(const Point<DIM> &p,
-                 Vector<double> &values) const override;
-    virtual void
-    vector_value_list(const std::vector<Point<DIM>> &points,
-                      std::vector<Vector<double>> &value_list) const override;
-private:
-    const Point<DIM> velocity;
     double present_timestep;
-};
-
-class ZeroFunctionBoundaryValues: public BaseBoundary
-{
-public:
-    ZeroFunctionBoundaryValues(const ComponentMask &mask = ComponentMask());
-
-    virtual void
-    vector_value(const Point<DIM> &,
-                 Vector<double> &values) const override;
 };
 
 //end namespace ElasticityEquation

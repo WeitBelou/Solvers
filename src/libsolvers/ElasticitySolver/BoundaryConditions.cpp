@@ -10,30 +10,31 @@
 using namespace ElasticityEquation;
 
 FunctionTimeBoundaryConditions::FunctionTimeBoundaryConditions(const std::map<types::boundary_id,
-                                                                              BaseBoundary *> &boundary_values_map)
+                                                                              std::vector<std::string>> &boundary_values_map,
+                                                               const double timestep)
     : Subscriptor()
 {
-    this->boundary_functions_map = boundary_values_map;
-
-    for (auto item : this->boundary_functions_map)
+    for (auto item : boundary_values_map)
     {
-        item.second->set_time(0.0);
+        this->boundary_functions_map.insert(std::make_pair(item.first, BaseBoundary(item.second,
+                                                                                    ComponentMask(),
+                                                                                    timestep)));
     }
 }
 
 void FunctionTimeBoundaryConditions::reinit(double present_time)
 {
-    for (auto item : this->boundary_functions_map)
+    for (auto &item : this->boundary_functions_map)
     {
-        item.second->set_time(present_time);
+        item.second.set_time(present_time);
     }
 }
 
 void FunctionTimeBoundaryConditions::update(double present_timestep)
 {
-    for (auto item : this->boundary_functions_map)
+    for (auto &item : this->boundary_functions_map)
     {
-        item.second->advance_time(present_timestep);
+        item.second.advance_time(present_timestep);
     }
 }
 
@@ -46,24 +47,33 @@ FunctionTimeBoundaryConditions::interpolate(const DoFHandler<DIM> &dof_handler)
     {
         VectorTools::interpolate_boundary_values(dof_handler,
                                                  item.first,
-                                                 *item.second,
+                                                 item.second,
                                                  temp,
-                                                 item.second->get_mask());
+                                                 item.second.get_mask());
     }
 
     return temp;
 }
 
-BaseBoundary *FunctionTimeBoundaryConditions::function(types::boundary_id id)
-{
-    return boundary_functions_map.at(id);
-}
-
 //
-BaseBoundary::BaseBoundary(const ComponentMask &mask)
+BaseBoundary::BaseBoundary(const std::vector<std::string> &function,
+                           const ComponentMask &mask,
+                           const double timestep)
     :
     Function<DIM>(DIM),
-    mask(mask)
+    mask(mask),
+    function(function),
+    present_timestep(timestep)
+{
+
+}
+
+BaseBoundary::BaseBoundary(const BaseBoundary &other)
+    :
+    Function<DIM>(DIM),
+    mask(other.mask),
+    function(other.function),
+    present_timestep(other.present_timestep)
 {
 
 }
@@ -78,54 +88,12 @@ BaseBoundary::~BaseBoundary()
 
 }
 
-//
-IncrementalBoundaryValues::IncrementalBoundaryValues(const Point<DIM> &velocity,
-                                                     const ComponentMask &mask)
-    :
-    BaseBoundary(mask),
-    velocity(velocity)
+void BaseBoundary::vector_value(const Point<DIM> &p, Vector<double> &values) const
 {
-    present_timestep = 1.0;
-}
+    FunctionParser<DIM> function_parser(DIM, get_time());
+    const std::string vars("x, y, z, t");
+    const std::map<std::string, double> constants = {std::make_pair("dt", present_timestep)};
+    function_parser.initialize(vars, function, constants, true);
 
-void IncrementalBoundaryValues::advance_time(double present_timestep)
-{
-    this->present_timestep = present_timestep;
-    BaseBoundary::advance_time(present_timestep);
-}
-void IncrementalBoundaryValues::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
-{
-    Assert(values.size() == DIM, ExcDimensionMismatch(values.size(), DIM));
-    for (size_t i = 0; i < DIM; ++i)
-    {
-        values(i) = velocity(i) * present_timestep;
-    }
-}
-void IncrementalBoundaryValues::vector_value_list(const std::vector<Point<DIM>> &points,
-                                                  std::vector<Vector<double>> &value_list) const
-{
-    const unsigned int n_points = points.size();
-    Assert (value_list.size() == n_points,
-            ExcDimensionMismatch(value_list.size(), n_points));
-    for (unsigned int p = 0; p < n_points; ++p)
-    {
-        IncrementalBoundaryValues::vector_value(points[p],
-                                                value_list[p]);
-    }
-}
-
-//
-
-ZeroFunctionBoundaryValues::ZeroFunctionBoundaryValues(const ComponentMask &mask)
-    :
-    BaseBoundary(mask)
-{
-
-}
-
-void ZeroFunctionBoundaryValues::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
-{
-    Assert (values.size() == DIM, ExcDimensionMismatch(values.size(), DIM));
-
-    values = 0;
+    function_parser.vector_value(p, values);
 }

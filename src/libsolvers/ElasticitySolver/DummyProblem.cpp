@@ -25,12 +25,7 @@ void ::PipeTask::run_pipe_task(const ElasticityEquation::Parameters &par)
 
     FEValuesExtractors::Scalar z_component(DIM - 1);
     ComponentMask z_mask = fe.component_mask(z_component);
-    es::IncrementalBoundaryValues inc_bv({0, 0, -0.1}, z_mask);
-    es::ZeroFunctionBoundaryValues zero_bv;
-    es::FunctionTimeBoundaryConditions boundary_conditions({
-                                                               std::make_pair(0, &zero_bv),
-                                                               std::make_pair(1, &inc_bv)
-                                                           });
+    es::FunctionTimeBoundaryConditions boundary_conditions(par.boundary_functions, par.timestep);
 
     es::ElasticitySolver top_level(triangulation, fe, quadrature,
                                            body_force, boundary_conditions);

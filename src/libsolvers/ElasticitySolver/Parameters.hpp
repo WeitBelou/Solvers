@@ -3,6 +3,8 @@
 
 #include <deal.II/base/parameter_handler.h>
 
+#include "BoundaryConditions.hpp"
+
 namespace ElasticityEquation
 {
 using namespace dealii;
@@ -21,6 +23,14 @@ class Geometry
 {
 public:
     std::string path_to_grid;
+
+    static void declare_parameters(ParameterHandler &prm);
+    void parse_parameters(ParameterHandler &prm);
+};
+
+struct BoundaryConditions
+{
+    std::map<types::boundary_id, std::vector<std::string>> boundary_functions;
 
     static void declare_parameters(ParameterHandler &prm);
     void parse_parameters(ParameterHandler &prm);
@@ -49,7 +59,8 @@ public:
 class Parameters: public FiniteElementSystem,
                   public Geometry,
                   public Material,
-                  public Time
+                  public Time,
+                  public BoundaryConditions
 {
 public:
     Parameters(const std::string &input_file);

@@ -95,6 +95,39 @@ void Time::parse_parameters(ParameterHandler &prm)
     prm.leave_subsection();
 }
 
+void BoundaryConditions::declare_parameters(ParameterHandler &prm)
+{
+    prm.enter_subsection("Boundary conditions");
+    {
+        prm.declare_entry("Dirichlet boundary conditions",
+                          "", Patterns::Map(Patterns::Integer(),
+                                            Patterns::Anything()));
+    }
+    prm.leave_subsection();
+}
+
+void BoundaryConditions::parse_parameters(ParameterHandler &prm)
+{
+    prm.enter_subsection("Boundary conditions");
+    {
+        const std::string function_map = prm.get("Dirichlet boundary conditions");
+
+        const std::vector<std::string> function_id_vector = Utilities::split_string_list(function_map, ',');
+
+        for (auto pair: function_id_vector)
+        {
+            const std::vector<std::string> function_pair = Utilities::split_string_list(pair, ':');
+
+            const types::boundary_id index = static_cast<types::boundary_id>(Utilities::string_to_int(function_pair[0]));
+
+            const std::vector<std::string> function_components = Utilities::split_string_list(function_pair[1], ';');
+
+            boundary_functions.insert(std::make_pair(index, function_components));
+        }
+    }
+    prm.leave_subsection();
+}
+
 Parameters::Parameters(const std::string &input_file)
 {
     ParameterHandler prm;
@@ -109,6 +142,7 @@ void Parameters::declare_parameters(ParameterHandler &prm)
     Geometry::declare_parameters(prm);
     Material::declare_parameters(prm);
     Time::declare_parameters(prm);
+    BoundaryConditions::declare_parameters(prm);
 }
 
 void Parameters::parse_parameters(ParameterHandler &prm)
@@ -117,4 +151,5 @@ void Parameters::parse_parameters(ParameterHandler &prm)
     Geometry::parse_parameters(prm);
     Material::parse_parameters(prm);
     Time::parse_parameters(prm);
+    BoundaryConditions::parse_parameters(prm);
 }
