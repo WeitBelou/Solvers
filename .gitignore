@@ -38,4 +38,5 @@ __pycache__/
 ## My staff
 .idea
 bin/
-out/
+out/*.vtu
+out/*.msh
