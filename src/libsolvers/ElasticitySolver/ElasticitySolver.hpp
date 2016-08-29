@@ -53,7 +53,7 @@ public:
              const Function <DIM> &body_force,
              BoundaryConditions::FunctionTimeBoundaryConditions &boundary_conditions);
     ~TopLevel();
-    void run();
+    void run(double timestep, double end_time);
 
 private:
     const SmartPointer<Triangulation<DIM>> triangulation;

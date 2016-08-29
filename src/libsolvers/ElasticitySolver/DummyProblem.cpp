@@ -8,9 +8,6 @@
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/manifold_lib.h>
 
-#include <deal.II/grid/grid_in.h>
-#include <deal.II/grid/grid_out.h>
-
 #include <deal.II/fe/fe_q.h>
 
 using namespace PipeTask;
@@ -38,7 +35,7 @@ void ::PipeTask::run_pipe_task(const Parameters::All &par)
 
     ElasticitySolver::TopLevel top_level(triangulation, fe, quadrature,
                                          body_force, boundary_conditions);
-    top_level.run();
+    top_level.run(par.timestep, par.end_time);
 }
 
 void PipeTask::write_pipe_grid(const std::string &file_name)

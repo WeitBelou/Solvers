@@ -47,11 +47,11 @@ TopLevel::~TopLevel()
     dof_handler.clear();
 }
 
-void TopLevel::run()
+void TopLevel::run(double timestep, double end_time)
 {
     present_time = 0.0;
-    present_timestep = 1.0;
-    end_time = 10.0;
+    present_timestep = timestep;
+    this->end_time = end_time;
 
     timestep_no = 0;
 
