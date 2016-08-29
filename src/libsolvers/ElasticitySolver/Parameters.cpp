@@ -1,6 +1,6 @@
 #include "Parameters.hpp"
 
-using namespace Parameters;
+using namespace ElasticityEquation;
 
 
 void FiniteElementSystem::declare_parameters(ParameterHandler &prm)

@@ -19,17 +19,17 @@
 
 #include <deal.II/numerics/data_out.h>
 
-using namespace ElasticitySolver;
+using namespace ElasticityEquation;
 
-const SymmetricTensor<4, DIM> TopLevel::stress_strain_tensor = ut::get_stress_strain_tensor(
-                                                                   9.695e10,
-                                                                   7.617e10);
+const SymmetricTensor<4, DIM> TopLevel::stress_strain_tensor = get_stress_strain_tensor(
+    9.695e10,
+    7.617e10);
 
 TopLevel::TopLevel(Triangulation<DIM> &triangulation,
                    const FESystem<DIM> &fe,
                    const QGauss<DIM> &quadrature,
                    const Function<DIM> &body_force,
-                   BoundaryConditions::FunctionTimeBoundaryConditions &boundary_conditions)
+                   ElasticityEquation::FunctionTimeBoundaryConditions &boundary_conditions)
     :
     triangulation(&triangulation),
     fe(&fe),
@@ -59,7 +59,8 @@ void TopLevel::run(double timestep, double end_time)
 
     do_initial_timestep();
 
-    while (present_time < end_time) {
+    while (present_time < end_time)
+    {
         do_timestep();
     }
 }
@@ -79,7 +80,8 @@ void TopLevel::do_timestep()
 
     std::cout << "Timestep " << timestep_no << " at time " << present_time << std::endl;
 
-    if (present_time > end_time) {
+    if (present_time > end_time)
+    {
         present_timestep -= (present_time - end_time);
         present_time = end_time;
     }
@@ -111,12 +113,14 @@ void TopLevel::solve_timestep()
 void TopLevel::assemble_linear_system(TopLevel::LinearSystem &linear_system)
 {
     auto assemble_system_func = [this](typename DoFHandler<DIM>::active_cell_iterator cell,
-                                       AssemblyScratchData & scratch_data,
-    AssemblyCopyData & copy_data) {
+                                       AssemblyScratchData &scratch_data,
+                                       AssemblyCopyData &copy_data)
+    {
         this->local_assemble_system(cell, scratch_data, copy_data);
     };
 
-    auto copy_local_to_global_func = [this, &linear_system](const AssemblyCopyData & copy_data) {
+    auto copy_local_to_global_func = [this, &linear_system](const AssemblyCopyData &copy_data)
+    {
         this->copy_local_to_global(copy_data, linear_system);
     };
 
@@ -145,13 +149,17 @@ void TopLevel::move_mesh()
     std::cout << "    Moving mesh..." << std::flush;
 
     std::vector<bool> vertex_touched(triangulation->n_vertices(), false);
-    for (auto && cell : dof_handler.active_cell_iterators()) {
-        for (size_t v = 0; v < GeometryInfo<DIM>::vertices_per_cell; ++v) {
-            if (vertex_touched[cell->vertex_index(v)] == false) {
+    for (auto &&cell : dof_handler.active_cell_iterators())
+    {
+        for (size_t v = 0; v < GeometryInfo<DIM>::vertices_per_cell; ++v)
+        {
+            if (vertex_touched[cell->vertex_index(v)] == false)
+            {
                 vertex_touched[cell->vertex_index(v)] = true;
 
                 Point<DIM> vertex_displacement;
-                for (size_t d = 0; d < DIM; ++d) {
+                for (size_t d = 0; d < DIM; ++d)
+                {
                     vertex_displacement[d] = incremental_displacement(cell->vertex_dof_index(v, d));
                 }
                 cell->vertex(v) += vertex_displacement;
@@ -175,12 +183,15 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
     copy_data.local_dofs_indices.resize(dofs_per_cell);
     scratch_data.fe_values.reinit(cell);
 
-    for (size_t i = 0; i < dofs_per_cell; ++i) {
-        for (size_t j = 0; j < dofs_per_cell; ++j) {
-            for (size_t q = 0; q < n_q_points; ++q) {
+    for (size_t i = 0; i < dofs_per_cell; ++i)
+    {
+        for (size_t j = 0; j < dofs_per_cell; ++j)
+        {
+            for (size_t q = 0; q < n_q_points; ++q)
+            {
                 const SymmetricTensor<2, DIM>
-                eps_phi_i = ut::get_strain(scratch_data.fe_values, i, q),
-                eps_phi_j = ut::get_strain(scratch_data.fe_values, j, q);
+                    eps_phi_i = get_strain(scratch_data.fe_values, i, q),
+                    eps_phi_j = get_strain(scratch_data.fe_values, j, q);
 
                 copy_data.cell_matrix(i, j) += (eps_phi_i * stress_strain_tensor * eps_phi_j
                                                 * scratch_data.fe_values.JxW(q));
@@ -191,19 +202,21 @@ void TopLevel::local_assemble_system(const typename DoFHandler<DIM>::active_cell
     std::vector<Vector<double>> body_force_values(n_q_points, Vector<double>(DIM));
     body_force->vector_value_list(scratch_data.fe_values.get_quadrature_points(), body_force_values);
 
-    const std::vector<ph::PointHistory> &local_quadrature_points_data =
+    const std::vector<PointHistory> &local_quadrature_points_data =
         quadrature_points_history.get_cell_quadrature_points_data(cell);
 
-    for (size_t i = 0; i < dofs_per_cell; ++i) {
+    for (size_t i = 0; i < dofs_per_cell; ++i)
+    {
         size_t component_i = fe->system_to_component_index(i).first;
 
-        for (size_t q = 0; q < n_q_points; ++q) {
+        for (size_t q = 0; q < n_q_points; ++q)
+        {
             const SymmetricTensor<2, DIM> &old_stress = local_quadrature_points_data[q].old_stress;
             copy_data.cell_rhs(i) += (body_force_values[q](component_i)
                                       * scratch_data.fe_values.shape_value(i, q)
                                       -
                                       old_stress *
-                                      ut::get_strain(scratch_data.fe_values, i, q))
+                                      get_strain(scratch_data.fe_values, i, q))
                                      * scratch_data.fe_values.JxW(q);
         }
     }
@@ -273,8 +286,8 @@ TopLevel::AssemblyScratchData::AssemblyScratchData(const FiniteElement<DIM> &fe,
                                                    const Quadrature<DIM> &quadrature)
     :
     fe_values(fe, quadrature,
-             update_values | update_gradients |
-             update_quadrature_points | update_JxW_values)
+              update_values | update_gradients |
+              update_quadrature_points | update_JxW_values)
 {
 
 }
@@ -282,6 +295,6 @@ TopLevel::AssemblyScratchData::AssemblyScratchData(const FiniteElement<DIM> &fe,
 TopLevel::AssemblyScratchData::AssemblyScratchData(const AssemblyScratchData &scratch)
     :
     fe_values(scratch.fe_values.get_fe(),
-             scratch.fe_values.get_quadrature(),
-             scratch.fe_values.get_update_flags())
+              scratch.fe_values.get_quadrature(),
+              scratch.fe_values.get_update_flags())
 {}

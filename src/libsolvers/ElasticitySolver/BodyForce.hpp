@@ -6,14 +6,15 @@
 #include <deal.II/base/function.h>
 #include <deal.II/lac/vector.h>
 
-namespace BodyForce {
+namespace ElasticityEquation
+{
 using namespace dealii;
 
 class GravityForce: public Function<DIM>
 {
 public:
     GravityForce(const double rho = 7700,
-                 const Point<DIM> & g = Point<DIM>(0.0, 0.0, -9.81));
+                 const Point<DIM> &g = Point<DIM>(0.0, 0.0, -9.81));
     virtual void
     vector_value(const Point<DIM> &p, Vector<double> &values) const override;
 

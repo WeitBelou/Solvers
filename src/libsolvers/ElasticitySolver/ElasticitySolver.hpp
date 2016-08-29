@@ -26,7 +26,6 @@
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/fe/fe_system.h>
 
-//#include <deal.II/base/thread_management.h>
 #include <deal.II/base/work_stream.h>
 
 #include <iostream>
@@ -37,21 +36,19 @@
 #include "QuadraturePointsHistory.hpp"
 #include "Utils.hpp"
 
-namespace ElasticitySolver {
-//begin namespace ElasticitySolver
+namespace ElasticityEquation
+{
+//begin namespace ElasticityEquation
 using namespace dealii;
-namespace bc = BoundaryConditions;
-namespace ut = Utils;
-namespace ph = PointsHistory;
 
 class TopLevel
 {
 public:
-    TopLevel(Triangulation <DIM> &triangulation,
-             const FESystem <DIM> &fe,
-             const QGauss <DIM> &quadrature,
-             const Function <DIM> &body_force,
-             BoundaryConditions::FunctionTimeBoundaryConditions &boundary_conditions);
+    TopLevel(Triangulation<DIM> &triangulation,
+             const FESystem<DIM> &fe,
+             const QGauss<DIM> &quadrature,
+             const Function<DIM> &body_force,
+             FunctionTimeBoundaryConditions &boundary_conditions);
     ~TopLevel();
     void run(double timestep, double end_time);
 
@@ -63,11 +60,11 @@ private:
     DoFHandler<DIM> dof_handler;
 
     const SmartPointer<const Function<DIM>> body_force;
-    const SmartPointer<bc::FunctionTimeBoundaryConditions> boundary_conditions;
+    const SmartPointer<FunctionTimeBoundaryConditions> boundary_conditions;
 
     Vector<double> incremental_displacement;
 
-    ph::QuadraturePointsHistory quadrature_points_history;
+    QuadraturePointsHistory quadrature_points_history;
     static const SymmetricTensor<4, DIM> stress_strain_tensor;
 
     double present_time;
@@ -96,14 +93,16 @@ private:
         Vector<double> rhs;
     };
 
-    struct AssemblyScratchData {
-        AssemblyScratchData(const FiniteElement <DIM> &fe,
-                            const Quadrature <DIM> &quadrature);
+    struct AssemblyScratchData
+    {
+        AssemblyScratchData(const FiniteElement<DIM> &fe,
+                            const Quadrature<DIM> &quadrature);
         AssemblyScratchData(const AssemblyScratchData &scratch);
         FEValues<DIM> fe_values;
     };
 
-    struct AssemblyCopyData {
+    struct AssemblyCopyData
+    {
         FullMatrix<double> cell_matrix;
         Vector<double> cell_rhs;
 
@@ -120,7 +119,7 @@ private:
                               LinearSystem &linear_system) const;
 };
 
-//end namespace ElasticitySolver
+//end namespace ElasticityEquation
 }
 
 

@@ -6,8 +6,9 @@
 
 #include "global.hpp"
 
-namespace Utils {
-//begin namespace Utils
+namespace ElasticityEquation
+{
+//begin namespace ElasticityEquation
 using namespace dealii;
 
 inline SymmetricTensor<2, DIM> get_strain(const FEValues<DIM> &fe_values, const size_t shape_func,
@@ -15,12 +16,15 @@ inline SymmetricTensor<2, DIM> get_strain(const FEValues<DIM> &fe_values, const 
 {
     SymmetricTensor<2, DIM> strain;
 
-    for (size_t i = 0; i < DIM; ++i) {
+    for (size_t i = 0; i < DIM; ++i)
+    {
         strain[i][i] = fe_values.shape_grad_component(shape_func, q_point, i)[i];
     }
 
-    for (size_t i = 0; i < DIM; ++i) {
-        for (size_t j = i + 1; j < DIM; ++j) {
+    for (size_t i = 0; i < DIM; ++i)
+    {
+        for (size_t j = i + 1; j < DIM; ++j)
+        {
             strain[i][j] = (fe_values.shape_grad_component(shape_func, q_point, i)[j]
                             + fe_values.shape_grad_component(shape_func, q_point, j)[i]) / 2;
         }
@@ -37,12 +41,15 @@ inline SymmetricTensor<2, DIM> get_strain(const std::vector<Tensor<1, DIM>> &gra
 
     Assert(grad.size() == DIM, ExcDimensionMismatch(grad.size(), DIM));
 
-    for (size_t i = 0; i < DIM; ++i) {
+    for (size_t i = 0; i < DIM; ++i)
+    {
         strain[i][i] = grad[i][i];
     }
 
-    for (size_t i = 0; i < DIM; ++i) {
-        for (size_t j = i + 1; j < DIM; ++j) {
+    for (size_t i = 0; i < DIM; ++i)
+    {
+        for (size_t j = i + 1; j < DIM; ++j)
+        {
             strain[i][j] = (grad[i][j] + grad[j][i]) / 2;
         }
     }
@@ -52,7 +59,7 @@ inline SymmetricTensor<2, DIM> get_strain(const std::vector<Tensor<1, DIM>> &gra
 
 Tensor<2, 3> get_rotation_matrix(const std::vector<Tensor<1, 3>> &grad_u);
 
-//end namespace Utils
+//end namespace ElasticityEquation
 }
 
 #endif // UTILS_HPP

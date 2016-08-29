@@ -40,7 +40,7 @@ void Launcher::run ()
               << " from: " << bfs::canonical (taskName).remove_filename ()
               << std::endl;
 
-    Parameters::All prm(taskName.string());
+    ElasticityEquation::All prm(taskName.string());
 
     if (!bfs::exists(prm.path_to_grid))
     {

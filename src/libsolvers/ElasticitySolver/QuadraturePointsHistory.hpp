@@ -6,11 +6,13 @@
 
 #include "global.hpp"
 
-namespace PointsHistory {
+namespace ElasticityEquation
+{
 
 using namespace dealii;
 
-struct PointHistory {
+struct PointHistory
+{
     SymmetricTensor<2, DIM> old_stress;
 };
 

@@ -13,20 +13,21 @@
 
 #include "global.hpp"
 
-namespace BoundaryConditions {
-//begin namespace BoundaryConditions
+namespace ElasticityEquation
+{
+//begin namespace ElasticityEquation
 using namespace dealii;
 
 class BaseBoundary;
 
-class FunctionTimeBoundaryConditions : public Subscriptor
+class FunctionTimeBoundaryConditions: public Subscriptor
 {
 public:
     FunctionTimeBoundaryConditions(const std::map<types::boundary_id,
-                                   BaseBoundary *> &boundary_functions_map);
+                                                  BaseBoundary *> &boundary_functions_map);
 
-    void reinit (double present_time);
-    void update (double present_timestep);
+    void reinit(double present_time);
+    void update(double present_timestep);
 
     std::map<types::global_dof_index, double> interpolate(const DoFHandler<DIM> &dof_handler);
 
@@ -35,7 +36,7 @@ private:
     std::map<types::boundary_id, BaseBoundary *> boundary_functions_map;
 };
 
-class BaseBoundary : public Function<DIM>
+class BaseBoundary: public Function<DIM>
 {
 public:
     BaseBoundary(const ComponentMask &mask);
@@ -67,17 +68,17 @@ private:
     double present_timestep;
 };
 
-class ZeroFunctionBoundaryValues : public BaseBoundary
+class ZeroFunctionBoundaryValues: public BaseBoundary
 {
 public:
-    ZeroFunctionBoundaryValues (const ComponentMask &mask = ComponentMask());
+    ZeroFunctionBoundaryValues(const ComponentMask &mask = ComponentMask());
 
     virtual void
     vector_value(const Point<DIM> &,
                  Vector<double> &values) const override;
 };
 
-//end namespace BoundaryConditions
+//end namespace ElasticityEquation
 }
 
 

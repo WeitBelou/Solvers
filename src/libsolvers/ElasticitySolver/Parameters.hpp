@@ -3,7 +3,8 @@
 
 #include <deal.II/base/parameter_handler.h>
 
-namespace Parameters {
+namespace ElasticityEquation
+{
 using namespace dealii;
 
 class FiniteElementSystem
@@ -22,7 +23,7 @@ public:
     std::string path_to_grid;
 
     static void declare_parameters(ParameterHandler &prm);
-    void parse_parameters(ParameterHandler & prm);
+    void parse_parameters(ParameterHandler &prm);
 };
 
 class Material
@@ -31,8 +32,8 @@ public:
     double lambda;
     double mu;
 
-    static void declare_parameters(ParameterHandler & prm);
-    void parse_parameters(ParameterHandler & prm);
+    static void declare_parameters(ParameterHandler &prm);
+    void parse_parameters(ParameterHandler &prm);
 };
 
 class Time
@@ -41,20 +42,20 @@ public:
     double timestep;
     double end_time;
 
-    static void declare_parameters(ParameterHandler & prm);
-    void parse_parameters(ParameterHandler & prm);
+    static void declare_parameters(ParameterHandler &prm);
+    void parse_parameters(ParameterHandler &prm);
 };
 
-class All : public FiniteElementSystem,
-        public Geometry,
-        public Material,
-        public Time
+class All: public FiniteElementSystem,
+           public Geometry,
+           public Material,
+           public Time
 {
 public:
-    All(const std::string & input_file);
+    All(const std::string &input_file);
 
-    static void declare_parameters(ParameterHandler & prm);
-    void parse_parameters(ParameterHandler & prm);
+    static void declare_parameters(ParameterHandler &prm);
+    void parse_parameters(ParameterHandler &prm);
 };
 
 }

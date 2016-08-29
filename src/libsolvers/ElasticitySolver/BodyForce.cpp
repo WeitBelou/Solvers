@@ -1,15 +1,15 @@
 #include "BodyForce.hpp"
 
-using namespace BodyForce;
+using namespace ElasticityEquation;
 
-BodyForce::GravityForce::GravityForce(const double rho,
-                                      const Point<DIM> &g) : Function<DIM>(DIM),
-    rho(rho), g(g)
+ElasticityEquation::GravityForce::GravityForce(const double rho,
+                                               const Point<DIM> &g) : Function<DIM>(DIM),
+                                                                      rho(rho), g(g)
 {
 
 }
 
-void BodyForce::GravityForce::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
+void ElasticityEquation::GravityForce::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
 {
     Assert(values.size() == DIM, ExcDimensionMismatch(values.size(), DIM));
 
@@ -19,14 +19,15 @@ void BodyForce::GravityForce::vector_value(const Point<DIM> &/*p*/, Vector<doubl
         values(i) = rho * g(i);
     }
 }
-void BodyForce::GravityForce::vector_value_list(const std::vector<Point<DIM>> &points,
-                                                std::vector<Vector<double>> &value_list) const
+void ElasticityEquation::GravityForce::vector_value_list(const std::vector<Point<DIM>> &points,
+                                                         std::vector<Vector<double>> &value_list) const
 {
     const size_t n_points = points.size();
 
     Assert(value_list.size() == n_points, ExcDimensionMismatch(value_list.size(), n_points));
 
-    for (size_t p = 0; p < n_points; ++p) {
+    for (size_t p = 0; p < n_points; ++p)
+    {
         GravityForce::vector_value(points[p], value_list[p]);
     }
 }
