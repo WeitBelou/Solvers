@@ -16,9 +16,9 @@ FunctionTimeBoundaryConditions::FunctionTimeBoundaryConditions(const std::map<ty
 {
     for (auto item : boundary_values_map)
     {
-        this->boundary_functions_map.insert(std::make_pair(item.first, BaseBoundary(item.second,
-                                                                                    ComponentMask(),
-                                                                                    timestep)));
+        this->boundary_functions_map.insert(std::make_pair(item.first, DirichletBoundary(item.second,
+                                                                                         ComponentMask(),
+                                                                                         timestep)));
     }
 }
 
@@ -56,9 +56,9 @@ FunctionTimeBoundaryConditions::interpolate(const DoFHandler<DIM> &dof_handler)
 }
 
 //
-BaseBoundary::BaseBoundary(const std::vector<std::string> &function,
-                           const ComponentMask &mask,
-                           const double timestep)
+DirichletBoundary::DirichletBoundary(const std::vector<std::string> &function,
+                                     const ComponentMask &mask,
+                                     const double timestep)
     :
     Function<DIM>(DIM),
     mask(mask),
@@ -68,7 +68,7 @@ BaseBoundary::BaseBoundary(const std::vector<std::string> &function,
 
 }
 
-BaseBoundary::BaseBoundary(const BaseBoundary &other)
+DirichletBoundary::DirichletBoundary(const DirichletBoundary &other)
     :
     Function<DIM>(DIM),
     mask(other.mask),
@@ -78,17 +78,17 @@ BaseBoundary::BaseBoundary(const BaseBoundary &other)
 
 }
 
-ComponentMask BaseBoundary::get_mask()
+ComponentMask DirichletBoundary::get_mask()
 {
     return mask;
 }
 
-BaseBoundary::~BaseBoundary()
+DirichletBoundary::~DirichletBoundary()
 {
 
 }
 
-void BaseBoundary::vector_value(const Point<DIM> &p, Vector<double> &values) const
+void DirichletBoundary::vector_value(const Point<DIM> &p, Vector<double> &values) const
 {
     FunctionParser<DIM> function_parser(DIM, get_time());
     const std::string vars("x, y, z, t");
@@ -96,4 +96,15 @@ void BaseBoundary::vector_value(const Point<DIM> &p, Vector<double> &values) con
     function_parser.initialize(vars, function, constants, true);
 
     function_parser.vector_value(p, values);
+}
+
+ComponentMaskGroup::ComponentMaskGroup(const ComponentMask &x_mask,
+                                       const ComponentMask &y_mask,
+                                       const ComponentMask &z_mask)
+    :
+    x_mask(x_mask),
+    y_mask(y_mask),
+    z_mask(z_mask)
+{
+
 }

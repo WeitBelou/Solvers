@@ -19,7 +19,7 @@ namespace ElasticityEquation
 //begin namespace ElasticityEquation
 using namespace dealii;
 
-class BaseBoundary;
+class DirichletBoundary;
 
 class FunctionTimeBoundaryConditions: public Subscriptor
 {
@@ -34,21 +34,21 @@ public:
     std::map<types::global_dof_index, double> interpolate(const DoFHandler<DIM> &dof_handler);
 
 private:
-    std::map<types::boundary_id, BaseBoundary> boundary_functions_map;
+    std::map<types::boundary_id, DirichletBoundary> boundary_functions_map;
 };
 
-class BaseBoundary: public Function<DIM>
+class DirichletBoundary: public Function<DIM>
 {
 public:
-    BaseBoundary(const std::vector<std::string> &function,
+    DirichletBoundary(const std::vector<std::string> &function,
                  const ComponentMask &mask = ComponentMask(),
                  const double timestep = 1.0);
-    BaseBoundary(const BaseBoundary &other);
+    DirichletBoundary(const DirichletBoundary &other);
 
     ComponentMask get_mask();
     virtual void vector_value(const Point<DIM> &p, Vector<double> &values) const override;
 
-    virtual ~BaseBoundary();
+    virtual ~DirichletBoundary();
 
 private:
     const ComponentMask mask;
