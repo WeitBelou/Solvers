@@ -41,17 +41,14 @@ class DirichletBoundary: public Function<DIM>
 {
 public:
     DirichletBoundary(const std::vector<std::string> &function,
-                 const ComponentMask &mask = ComponentMask(),
-                 const double timestep = 1.0);
+                      const double timestep = 1.0);
     DirichletBoundary(const DirichletBoundary &other);
 
-    ComponentMask get_mask();
     virtual void vector_value(const Point<DIM> &p, Vector<double> &values) const override;
 
     virtual ~DirichletBoundary();
 
 private:
-    const ComponentMask mask;
     const std::vector<std::string> function;
 
     double present_timestep;
