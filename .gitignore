@@ -37,6 +37,6 @@ __pycache__/
 
 ## My staff
 .idea
-bin/
+build/
 out/*.vtu
 out/*.msh
