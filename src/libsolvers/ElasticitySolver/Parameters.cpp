@@ -102,6 +102,9 @@ void BoundaryConditions::declare_parameters(ParameterHandler &prm)
         prm.declare_entry("Dirichlet boundary conditions",
                           "", Patterns::Map(Patterns::Integer(),
                                             Patterns::Anything()));
+        prm.declare_entry("Boundary conditions mask",
+                          "", Patterns::Map(Patterns::Integer(),
+                                            Patterns::Anything()));
     }
     prm.leave_subsection();
 }
@@ -123,6 +126,17 @@ void BoundaryConditions::parse_parameters(ParameterHandler &prm)
             const std::vector<std::string> function_components = Utilities::split_string_list(function_pair[1], ';');
 
             boundary_functions.insert(std::make_pair(index, function_components));
+        }
+
+        const std::string functions_mask = prm.get("Boundary conditions mask");
+
+        const std::vector<std::string> mask_id_vector = Utilities::split_string_list(functions_mask);
+
+        for (auto pair : mask_id_vector)
+        {
+            const std::vector<std::string> mask_pair = Utilities::split_string_list(pair, ':');
+            boundary_conditions_mask.insert(std::make_pair(Utilities::string_to_int(mask_pair[0]),
+                                                           mask_pair[1]));
         }
     }
     prm.leave_subsection();

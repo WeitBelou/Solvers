@@ -18,6 +18,8 @@ subsection Time
 end
 
 subsection Boundary conditions
-    set Dirichlet boundary conditions = 0 : 0; 0; 0.1 * dt, \
+    set Dirichlet boundary conditions = 0 : 0; 0; 0, \
                                         1 : 0; 0; - 0.1 * dt
+    set Boundary conditions mask = 0: all, \
+                                   1: z
 end

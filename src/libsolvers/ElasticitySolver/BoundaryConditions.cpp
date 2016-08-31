@@ -11,13 +11,18 @@ using namespace ElasticityEquation;
 
 FunctionTimeBoundaryConditions::FunctionTimeBoundaryConditions(const std::map<types::boundary_id,
                                                                               std::vector<std::string>> &boundary_values_map,
+                                                               const std::map<types::boundary_id,
+                                                                                  std::string> &bondary_functions_mask,
+                                                               const BoundaryMaskGroup &mask_group,
                                                                const double timestep)
     : Subscriptor()
 {
     for (auto item : boundary_values_map)
     {
-        this->boundary_functions_map.insert(std::make_pair(item.first, DirichletBoundary(item.second,
-                                                                                         timestep)));
+        this->boundary_functions_map.insert(std::make_pair(item.first,
+                                                           DirichletBoundary(item.second,
+                                                                             mask_group.get_mask_from_string(bondary_functions_mask.at(item.first)),
+                                                                             timestep)));
     }
 }
 
@@ -47,7 +52,8 @@ FunctionTimeBoundaryConditions::interpolate(const DoFHandler<DIM> &dof_handler)
         VectorTools::interpolate_boundary_values(dof_handler,
                                                  item.first,
                                                  item.second,
-                                                 temp);
+                                                 temp,
+                                                 item.second.get_mask());
     }
 
     return temp;
@@ -55,10 +61,12 @@ FunctionTimeBoundaryConditions::interpolate(const DoFHandler<DIM> &dof_handler)
 
 //
 DirichletBoundary::DirichletBoundary(const std::vector<std::string> &function,
+                                     const ComponentMask &mask,
                                      const double timestep)
     :
     Function<DIM>(DIM),
     function(function),
+    mask(mask),
     present_timestep(timestep)
 {
 
@@ -68,6 +76,7 @@ DirichletBoundary::DirichletBoundary(const DirichletBoundary &other)
     :
     Function<DIM>(DIM),
     function(other.function),
+    mask(other.mask),
     present_timestep(other.present_timestep)
 {
 
@@ -86,4 +95,39 @@ void DirichletBoundary::vector_value(const Point<DIM> &p, Vector<double> &values
     function_parser.initialize(vars, function, constants, true);
 
     function_parser.vector_value(p, values);
+}
+ComponentMask DirichletBoundary::get_mask() const
+{
+    return mask;
+}
+
+BoundaryMaskGroup::BoundaryMaskGroup(const ComponentMask &x_mask,
+                                     const ComponentMask &y_mask,
+                                     const ComponentMask &z_mask)
+    :
+    x_mask(x_mask),
+    y_mask(y_mask),
+    z_mask(z_mask)
+{
+
+}
+
+ComponentMask BoundaryMaskGroup::get_mask_from_string(const std::string &mask) const
+{
+    if (mask == "x")
+    {
+        return x_mask;
+    }
+
+    if (mask == "y")
+    {
+        return y_mask;
+    }
+
+    if (mask == "z")
+    {
+        return z_mask;
+    }
+
+    return ComponentMask();
 }

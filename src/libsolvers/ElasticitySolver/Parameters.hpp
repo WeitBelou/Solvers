@@ -31,6 +31,7 @@ public:
 struct BoundaryConditions
 {
     std::map<types::boundary_id, std::vector<std::string>> boundary_functions;
+    std::map<types::boundary_id, std::string> boundary_conditions_mask;
 
     static void declare_parameters(ParameterHandler &prm);
     void parse_parameters(ParameterHandler &prm);

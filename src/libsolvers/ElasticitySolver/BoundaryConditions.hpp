@@ -20,13 +20,17 @@ namespace ElasticityEquation
 using namespace dealii;
 
 class DirichletBoundary;
+class BoundaryMaskGroup;
 
 class FunctionTimeBoundaryConditions: public Subscriptor
 {
 public:
     FunctionTimeBoundaryConditions(const std::map<types::boundary_id,
-                                                      std::vector<std::string>> &boundary_functions_map,
-                                       const double timestep);
+                                                  std::vector<std::string>> &boundary_functions_map,
+                                   const std::map<types::boundary_id,
+                                                  std::string> &bondary_functions_mask,
+                                   const BoundaryMaskGroup &mask_group,
+                                   const double timestep);
 
     void reinit(double present_time);
     void update(double present_timestep);
@@ -41,17 +45,33 @@ class DirichletBoundary: public Function<DIM>
 {
 public:
     DirichletBoundary(const std::vector<std::string> &function,
-                      const double timestep = 1.0);
+                      const ComponentMask &mask,
+                      const double timestep);
     DirichletBoundary(const DirichletBoundary &other);
 
     virtual void vector_value(const Point<DIM> &p, Vector<double> &values) const override;
+    ComponentMask get_mask() const;
 
     virtual ~DirichletBoundary();
 
 private:
     const std::vector<std::string> function;
-
+    const ComponentMask mask;
     double present_timestep;
+};
+
+class BoundaryMaskGroup
+{
+public:
+    BoundaryMaskGroup(const ComponentMask &x_mask,
+                      const ComponentMask &y_mask,
+                      const ComponentMask &z_mask);
+
+    ComponentMask get_mask_from_string(const std::string &mask) const;
+private:
+    const ComponentMask x_mask;
+    const ComponentMask y_mask;
+    const ComponentMask z_mask;
 };
 
 //end namespace ElasticityEquation

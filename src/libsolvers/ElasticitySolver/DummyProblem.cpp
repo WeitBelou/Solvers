@@ -23,9 +23,19 @@ void ::PipeTask::run_pipe_task(const ElasticityEquation::Parameters &par)
 
     es::GravityForce body_force;
 
-    FEValuesExtractors::Scalar z_component(DIM - 1);
+    FEValuesExtractors::Scalar x_component(0);
+    ComponentMask x_mask = fe.component_mask(x_component);
+
+    FEValuesExtractors::Scalar y_component(1);
+    ComponentMask y_mask = fe.component_mask(y_component);
+
+    FEValuesExtractors::Scalar z_component(2);
     ComponentMask z_mask = fe.component_mask(z_component);
-    es::FunctionTimeBoundaryConditions boundary_conditions(par.boundary_functions, par.timestep);
+
+    es::BoundaryMaskGroup mask_group(x_mask, y_mask, z_mask);
+
+    es::FunctionTimeBoundaryConditions boundary_conditions(par.boundary_functions, par.boundary_conditions_mask,
+                                                           mask_group, par.timestep);
 
     es::ElasticitySolver top_level(triangulation, fe, quadrature,
                                            body_force, boundary_conditions);
