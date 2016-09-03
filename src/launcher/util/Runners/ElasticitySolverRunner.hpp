@@ -5,7 +5,7 @@
 #ifndef SOLVERS_ELASTICITYSOLVERRUNNER_HPP
 #define SOLVERS_ELASTICITYSOLVERRUNNER_HPP
 
-#include "ElasticitySolver.hpp"
+#include "src/libsolvers/ElasticitySolver/ElasticitySolver.hpp"
 #include "src/launcher/util/Parameters.hpp"
 #include "src/libsolvers/global.hpp"
 

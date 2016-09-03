@@ -4,7 +4,7 @@
 #include <iostream>
 
 #include "Launcher.h"
-#include "src/libsolvers/ElasticitySolver/ElasticitySolverRunner.hpp"
+#include "src/launcher/util/Runners/ElasticitySolverRunner.hpp"
 
 Launcher::Launcher ()
 {
