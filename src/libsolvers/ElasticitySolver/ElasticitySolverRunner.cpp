@@ -2,18 +2,17 @@
 // Created by ivan on 20.08.16.
 //
 
-#include "DummyProblem.hpp"
-#include "BodyForce.hpp"
+#include "ElasticitySolverRunner.hpp"
+#include "src/libsolvers/BoundaryConditions/BodyForce.hpp"
 
 #include <deal.II/grid/grid_generator.h>
 #include <deal.II/grid/manifold_lib.h>
 
 #include <deal.II/fe/fe_q.h>
 
-using namespace PipeTask;
-namespace es = ElasticityEquation;
+using namespace dealii;
 
-void ::PipeTask::run_pipe_task(const ElasticityEquation::Parameters &par)
+void PipeTask::run_pipe_task(const Parameters::ElasticitySolverParameters &par)
 {
     Triangulation<DIM> triangulation;
     read_triangulation(triangulation, par.path_to_grid);
@@ -21,7 +20,7 @@ void ::PipeTask::run_pipe_task(const ElasticityEquation::Parameters &par)
     FESystem<DIM> fe(FE_Q<DIM>(par.polynomial_degree), DIM);
     QGauss<DIM> quadrature(par.quadrature_degree);
 
-    es::GravityForce body_force;
+    BodyForce::GravityForce body_force;
 
     FEValuesExtractors::Scalar x_component(0);
     ComponentMask x_mask = fe.component_mask(x_component);
@@ -32,14 +31,15 @@ void ::PipeTask::run_pipe_task(const ElasticityEquation::Parameters &par)
     FEValuesExtractors::Scalar z_component(2);
     ComponentMask z_mask = fe.component_mask(z_component);
 
-    es::BoundaryMaskGroup mask_group(x_mask, y_mask, z_mask);
+    BoundaryConditions::BoundaryMaskGroup mask_group(x_mask, y_mask, z_mask);
 
-    es::FunctionTimeBoundaryConditions boundary_conditions(par.boundary_functions, par.boundary_conditions_mask,
-                                                           mask_group, par.timestep);
+    BoundaryConditions::FunctionBoundaryConditions
+        boundary_conditions(par.boundary_functions, par.boundary_conditions_mask,
+                            mask_group, par.timestep);
 
-    es::ElasticitySolver top_level(triangulation, fe, quadrature,
-                                           body_force, boundary_conditions);
-    top_level.run(par.timestep, par.end_time);
+    ElasticityEquation::ElasticitySolver solver(triangulation, fe, quadrature,
+                                                body_force, boundary_conditions);
+    solver.run(par.timestep, par.end_time);
 }
 
 void PipeTask::write_pipe_grid(const std::string &file_name)

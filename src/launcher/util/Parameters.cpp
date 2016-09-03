@@ -1,7 +1,8 @@
 #include "Parameters.hpp"
+#include <deal.II/base/utilities.h>
 
-using namespace ElasticityEquation;
-
+using namespace Parameters;
+using namespace dealii;
 
 void FiniteElementSystem::declare_parameters(ParameterHandler &prm)
 {
@@ -120,12 +121,10 @@ void BoundaryConditions::parse_parameters(ParameterHandler &prm)
         for (auto pair: function_id_vector)
         {
             const std::vector<std::string> function_pair = Utilities::split_string_list(pair, ':');
-
             const types::boundary_id index = static_cast<types::boundary_id>(Utilities::string_to_int(function_pair[0]));
+            const std::string function = function_pair[1];
 
-            const std::vector<std::string> function_components = Utilities::split_string_list(function_pair[1], ';');
-
-            boundary_functions.insert(std::make_pair(index, function_components));
+            boundary_functions.insert(std::make_pair(index, function));
         }
 
         const std::string functions_mask = prm.get("Boundary conditions mask");
@@ -142,7 +141,7 @@ void BoundaryConditions::parse_parameters(ParameterHandler &prm)
     prm.leave_subsection();
 }
 
-Parameters::Parameters(const std::string &input_file)
+ElasticitySolverParameters::ElasticitySolverParameters(const std::string &input_file)
 {
     ParameterHandler prm;
     declare_parameters(prm);
@@ -150,7 +149,7 @@ Parameters::Parameters(const std::string &input_file)
     parse_parameters(prm);
 }
 
-void Parameters::declare_parameters(ParameterHandler &prm)
+void ElasticitySolverParameters::declare_parameters(ParameterHandler &prm)
 {
     FiniteElementSystem::declare_parameters(prm);
     Geometry::declare_parameters(prm);
@@ -159,7 +158,7 @@ void Parameters::declare_parameters(ParameterHandler &prm)
     BoundaryConditions::declare_parameters(prm);
 }
 
-void Parameters::parse_parameters(ParameterHandler &prm)
+void ElasticitySolverParameters::parse_parameters(ParameterHandler &prm)
 {
     FiniteElementSystem::parse_parameters(prm);
     Geometry::parse_parameters(prm);

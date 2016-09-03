@@ -31,41 +31,41 @@
 #include <iostream>
 #include <fstream>
 
-#include "global.hpp"
-#include "BoundaryConditions.hpp"
+#include "src/libsolvers/global.hpp"
+#include "src/libsolvers/BoundaryConditions/BoundaryConditions.hpp"
 #include "QuadraturePointsHistory.hpp"
 #include "Utils.hpp"
 
+namespace bc = BoundaryConditions;
+
 namespace ElasticityEquation
 {
-//begin namespace ElasticityEquation
-using namespace dealii;
 
 class ElasticitySolver
 {
 public:
-    ElasticitySolver(Triangulation<DIM> &triangulation,
-                     const FESystem<DIM> &fe,
-                     const QGauss<DIM> &quadrature,
-                     const Function<DIM> &body_force,
-                     FunctionTimeBoundaryConditions &boundary_conditions);
+    ElasticitySolver(dealii::Triangulation<DIM> &triangulation,
+                     const dealii::FESystem<DIM> &fe,
+                     const dealii::QGauss<DIM> &quadrature,
+                     const dealii::Function<DIM> &body_force,
+                     bc::FunctionBoundaryConditions &boundary_conditions);
     ~ElasticitySolver();
     void run(double timestep, double end_time);
 
 private:
-    const SmartPointer<Triangulation<DIM>> triangulation;
-    const SmartPointer<const FESystem<DIM>> fe;
-    const SmartPointer<const QGauss<DIM>> quadrature;
+    const dealii::SmartPointer<dealii::Triangulation<DIM>> triangulation;
+    const dealii::SmartPointer<const dealii::FESystem<DIM>> fe;
+    const dealii::SmartPointer<const dealii::QGauss<DIM>> quadrature;
 
-    DoFHandler<DIM> dof_handler;
+    dealii::DoFHandler<DIM> dof_handler;
 
-    const SmartPointer<const Function<DIM>> body_force;
-    const SmartPointer<FunctionTimeBoundaryConditions> boundary_conditions;
+    const dealii::SmartPointer<const dealii::Function<DIM>> body_force;
+    const dealii::SmartPointer<bc::FunctionBoundaryConditions> boundary_conditions;
 
-    Vector<double> incremental_displacement;
+    dealii::Vector<double> incremental_displacement;
 
     QuadraturePointsHistory quadrature_points_history;
-    static const SymmetricTensor<4, DIM> stress_strain_tensor;
+    static const dealii::SymmetricTensor<4, DIM> stress_strain_tensor;
 
     double present_time;
     double present_timestep;
@@ -83,43 +83,41 @@ private:
     class LinearSystem
     {
     public:
-        LinearSystem(const DoFHandler<DIM> &dof_handler);
+        LinearSystem(const dealii::DoFHandler<DIM> &dof_handler);
 
-        void solve(Vector<double> &solution) const;
+        void solve(dealii::Vector<double> &solution) const;
 
-        ConstraintMatrix hanging_node_constraints;
-        SparsityPattern sparsity_pattern;
-        SparseMatrix<double> matrix;
-        Vector<double> rhs;
+        dealii::ConstraintMatrix hanging_node_constraints;
+        dealii::SparsityPattern sparsity_pattern;
+        dealii::SparseMatrix<double> matrix;
+        dealii::Vector<double> rhs;
     };
 
     struct AssemblyScratchData
     {
-        AssemblyScratchData(const FiniteElement<DIM> &fe,
-                            const Quadrature<DIM> &quadrature);
+        AssemblyScratchData(const dealii::FiniteElement<DIM> &fe,
+                            const dealii::Quadrature<DIM> &quadrature);
         AssemblyScratchData(const AssemblyScratchData &scratch);
-        FEValues<DIM> fe_values;
+        dealii::FEValues<DIM> fe_values;
     };
 
     struct AssemblyCopyData
     {
-        FullMatrix<double> cell_matrix;
-        Vector<double> cell_rhs;
+        dealii::FullMatrix<double> cell_matrix;
+        dealii::Vector<double> cell_rhs;
 
-        std::vector<types::global_dof_index> local_dofs_indices;
+        std::vector<dealii::types::global_dof_index> local_dofs_indices;
     };
 
     void assemble_linear_system(LinearSystem &linear_system);
 
-    void local_assemble_system(const typename DoFHandler<DIM>::active_cell_iterator &cell,
+    void local_assemble_system(const typename dealii::DoFHandler<DIM>::active_cell_iterator &cell,
                                AssemblyScratchData &scratch_data,
                                AssemblyCopyData &copy_data) const;
 
     void copy_local_to_global(const AssemblyCopyData &copy_data,
                               LinearSystem &linear_system) const;
 };
-
-//end namespace ElasticityEquation
 }
 
 

@@ -20,6 +20,7 @@
 #include <deal.II/numerics/data_out.h>
 
 using namespace ElasticityEquation;
+using namespace dealii;
 
 const SymmetricTensor<4, DIM> ElasticitySolver::stress_strain_tensor
     = get_stress_strain_tensor(9.695e10, 7.617e10);
@@ -28,7 +29,7 @@ ElasticitySolver::ElasticitySolver(Triangulation<DIM> &triangulation,
                                    const FESystem<DIM> &fe,
                                    const QGauss<DIM> &quadrature,
                                    const Function<DIM> &body_force,
-                                   ElasticityEquation::FunctionTimeBoundaryConditions &boundary_conditions)
+                                   bc::FunctionBoundaryConditions &boundary_conditions)
     :
     triangulation(&triangulation),
     fe(&fe),

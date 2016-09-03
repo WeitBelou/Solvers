@@ -4,17 +4,15 @@
 #include <deal.II/fe/fe_values.h>
 #include <deal.II/base/symmetric_tensor.h>
 
-#include "global.hpp"
+#include "src/libsolvers/global.hpp"
 
 namespace ElasticityEquation
 {
-//begin namespace ElasticityEquation
-using namespace dealii;
 
-inline SymmetricTensor<2, DIM> get_strain(const FEValues<DIM> &fe_values, const size_t shape_func,
-                                          const size_t q_point)
+inline dealii::SymmetricTensor<2, DIM> get_strain(const dealii::FEValues<DIM> &fe_values, const size_t shape_func,
+                                                  const size_t q_point)
 {
-    SymmetricTensor<2, DIM> strain;
+    dealii::SymmetricTensor<2, DIM> strain;
 
     for (size_t i = 0; i < DIM; ++i)
     {
@@ -33,13 +31,13 @@ inline SymmetricTensor<2, DIM> get_strain(const FEValues<DIM> &fe_values, const 
     return strain;
 }
 
-SymmetricTensor<4, DIM> get_stress_strain_tensor(const double lambda, const double mu);
+dealii::SymmetricTensor<4, DIM> get_stress_strain_tensor(const double lambda, const double mu);
 
-inline SymmetricTensor<2, DIM> get_strain(const std::vector<Tensor<1, DIM>> &grad)
+inline dealii::SymmetricTensor<2, DIM> get_strain(const std::vector<dealii::Tensor<1, DIM>> &grad)
 {
-    SymmetricTensor<2, DIM> strain;
+    dealii::SymmetricTensor<2, DIM> strain;
 
-    Assert(grad.size() == DIM, ExcDimensionMismatch(grad.size(), DIM));
+    Assert(grad.size() == DIM, dealii::ExcDimensionMismatch(grad.size(), DIM));
 
     for (size_t i = 0; i < DIM; ++i)
     {
@@ -57,7 +55,7 @@ inline SymmetricTensor<2, DIM> get_strain(const std::vector<Tensor<1, DIM>> &gra
     return strain;
 }
 
-Tensor<2, 3> get_rotation_matrix(const std::vector<Tensor<1, 3>> &grad_u);
+dealii::Tensor<2, 3> get_rotation_matrix(const std::vector<dealii::Tensor<1, 3>> &grad_u);
 
 //end namespace ElasticityEquation
 }

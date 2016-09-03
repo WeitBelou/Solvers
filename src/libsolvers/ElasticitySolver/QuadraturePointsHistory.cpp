@@ -2,6 +2,8 @@
 #include "Utils.hpp"
 
 namespace ut = ElasticityEquation;
+using namespace dealii;
+
 ElasticityEquation::QuadraturePointsHistory::QuadraturePointsHistory(const FiniteElement<DIM> &fe,
                                                                      const Quadrature<DIM> &quadrature)
     :

@@ -4,8 +4,7 @@
 #include <iostream>
 
 #include "Launcher.h"
-#include "src/libsolvers/ElasticitySolver/DummyProblem.hpp"
-#include "src/libsolvers/ElasticitySolver/Parameters.hpp"
+#include "src/libsolvers/ElasticitySolver/ElasticitySolverRunner.hpp"
 
 Launcher::Launcher ()
 {
@@ -40,7 +39,7 @@ void Launcher::run ()
               << " from: " << bfs::canonical (taskName).remove_filename ()
               << std::endl;
 
-    ElasticityEquation::Parameters prm(taskName.string());
+    Parameters::ElasticitySolverParameters prm(taskName.string());
 
     if (!bfs::exists(prm.path_to_grid))
     {

@@ -4,33 +4,31 @@
 #include <deal.II/base/symmetric_tensor.h>
 #include <deal.II/fe/fe_values.h>
 
-#include "global.hpp"
+#include "src/libsolvers/global.hpp"
 
 namespace ElasticityEquation
 {
 
-using namespace dealii;
-
 struct PointHistory
 {
-    SymmetricTensor<2, DIM> old_stress;
+    dealii::SymmetricTensor<2, DIM> old_stress;
 };
 
 class QuadraturePointsHistory
 {
 public:
-    QuadraturePointsHistory(const FiniteElement<DIM> &fe,
-                            const Quadrature<DIM> &quadrature);
+    QuadraturePointsHistory(const dealii::FiniteElement<DIM> &fe,
+                            const dealii::Quadrature<DIM> &quadrature);
 
-    void setup(Triangulation<DIM> &triangulation);
-    void update(const DoFHandler<DIM> &dof_handler,
-                Vector<double> incremental_displacement,
-                const SymmetricTensor<4, DIM> &stress_strain_tensor);
-    const std::vector<PointHistory> &get_cell_quadrature_points_data(const typename
-                                                                     DoFHandler<DIM>::active_cell_iterator &cell) const;
+    void setup(dealii::Triangulation<DIM> &triangulation);
+    void update(const dealii::DoFHandler<DIM> &dof_handler,
+                dealii::Vector<double> incremental_displacement,
+                const dealii::SymmetricTensor<4, DIM> &stress_strain_tensor);
+    const std::vector<PointHistory> &
+    get_cell_quadrature_points_data(const typename dealii::DoFHandler<DIM>::active_cell_iterator &cell) const;
 private:
-    const SmartPointer<const FiniteElement<DIM>> fe;
-    const SmartPointer<const Quadrature<DIM>> quadrature;
+    const dealii::SmartPointer<const dealii::FiniteElement <DIM>> fe;
+    const dealii::SmartPointer<const dealii::Quadrature <DIM>> quadrature;
 
     std::vector<std::vector<PointHistory>> quadrature_points_history;
 };

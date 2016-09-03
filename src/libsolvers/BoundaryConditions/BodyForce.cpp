@@ -1,15 +1,16 @@
 #include "BodyForce.hpp"
 
-using namespace ElasticityEquation;
+using namespace BodyForce;
+using namespace dealii;
 
-ElasticityEquation::GravityForce::GravityForce(const double rho,
-                                               const Point<DIM> &g) : Function<DIM>(DIM),
-                                                                      rho(rho), g(g)
+GravityForce::GravityForce(const double rho,
+                           const Point<DIM> &g) : Function<DIM>(DIM),
+                                                  rho(rho), g(g)
 {
 
 }
 
-void ElasticityEquation::GravityForce::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
+void GravityForce::vector_value(const Point<DIM> &/*p*/, Vector<double> &values) const
 {
     Assert(values.size() == DIM, ExcDimensionMismatch(values.size(), DIM));
 
@@ -19,7 +20,7 @@ void ElasticityEquation::GravityForce::vector_value(const Point<DIM> &/*p*/, Vec
         values(i) = rho * g(i);
     }
 }
-void ElasticityEquation::GravityForce::vector_value_list(const std::vector<Point<DIM>> &points,
+void GravityForce::vector_value_list(const std::vector<Point<DIM>> &points,
                                                          std::vector<Vector<double>> &value_list) const
 {
     const size_t n_points = points.size();

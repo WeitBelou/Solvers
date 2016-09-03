@@ -7,12 +7,12 @@
 
 #include "BoundaryConditions.hpp"
 
-using namespace ElasticityEquation;
+using namespace BoundaryConditions;
 
-FunctionTimeBoundaryConditions::FunctionTimeBoundaryConditions(const std::map<types::boundary_id,
-                                                                              std::vector<std::string>> &boundary_values_map,
+FunctionBoundaryConditions::FunctionBoundaryConditions(const std::map<types::boundary_id,
+                                                                              std::string> &boundary_values_map,
                                                                const std::map<types::boundary_id,
-                                                                                  std::string> &bondary_functions_mask,
+                                                                              std::string> &bondary_functions_mask,
                                                                const BoundaryMaskGroup &mask_group,
                                                                const double timestep)
     : Subscriptor()
@@ -21,12 +21,13 @@ FunctionTimeBoundaryConditions::FunctionTimeBoundaryConditions(const std::map<ty
     {
         this->boundary_functions_map.insert(std::make_pair(item.first,
                                                            DirichletBoundary(item.second,
-                                                                             mask_group.get_mask_from_string(bondary_functions_mask.at(item.first)),
+                                                                             mask_group.get_mask_from_string(
+                                                                                 bondary_functions_mask.at(item.first)),
                                                                              timestep)));
     }
 }
 
-void FunctionTimeBoundaryConditions::reinit(double present_time)
+void FunctionBoundaryConditions::reinit(double present_time)
 {
     for (auto &item : this->boundary_functions_map)
     {
@@ -34,7 +35,7 @@ void FunctionTimeBoundaryConditions::reinit(double present_time)
     }
 }
 
-void FunctionTimeBoundaryConditions::update(double present_timestep)
+void FunctionBoundaryConditions::update(double present_timestep)
 {
     for (auto &item : this->boundary_functions_map)
     {
@@ -43,7 +44,7 @@ void FunctionTimeBoundaryConditions::update(double present_timestep)
 }
 
 std::map<types::global_dof_index, double>
-FunctionTimeBoundaryConditions::interpolate(const DoFHandler<DIM> &dof_handler)
+FunctionBoundaryConditions::interpolate(const DoFHandler<DIM> &dof_handler)
 {
     std::map<types::global_dof_index, double> temp;
 
@@ -60,7 +61,7 @@ FunctionTimeBoundaryConditions::interpolate(const DoFHandler<DIM> &dof_handler)
 }
 
 //
-DirichletBoundary::DirichletBoundary(const std::vector<std::string> &function,
+DirichletBoundary::DirichletBoundary(const std::string &function,
                                      const ComponentMask &mask,
                                      const double timestep)
     :

@@ -12,21 +12,19 @@
 
 #include <deal.II/fe/component_mask.h>
 
-#include "global.hpp"
+#include "src/libsolvers/global.hpp"
 
-namespace ElasticityEquation
+namespace BoundaryConditions
 {
-//begin namespace ElasticityEquation
 using namespace dealii;
 
 class DirichletBoundary;
 class BoundaryMaskGroup;
 
-class FunctionTimeBoundaryConditions: public Subscriptor
+class FunctionBoundaryConditions: public Subscriptor
 {
 public:
-    FunctionTimeBoundaryConditions(const std::map<types::boundary_id,
-                                                  std::vector<std::string>> &boundary_functions_map,
+    FunctionBoundaryConditions(const std::map<types::boundary_id, std::string> &boundary_functions_map,
                                    const std::map<types::boundary_id,
                                                   std::string> &bondary_functions_mask,
                                    const BoundaryMaskGroup &mask_group,
@@ -44,7 +42,7 @@ private:
 class DirichletBoundary: public Function<DIM>
 {
 public:
-    DirichletBoundary(const std::vector<std::string> &function,
+    DirichletBoundary(const std::string &function,
                       const ComponentMask &mask,
                       const double timestep);
     DirichletBoundary(const DirichletBoundary &other);
@@ -55,7 +53,7 @@ public:
     virtual ~DirichletBoundary();
 
 private:
-    const std::vector<std::string> function;
+    const std::string function;
     const ComponentMask mask;
     double present_timestep;
 };
@@ -74,7 +72,6 @@ private:
     const ComponentMask z_mask;
 };
 
-//end namespace ElasticityEquation
 }
 
 

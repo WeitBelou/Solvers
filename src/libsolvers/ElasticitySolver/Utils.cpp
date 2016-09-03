@@ -1,6 +1,7 @@
 #include "Utils.hpp"
 
 using namespace ElasticityEquation;
+using namespace dealii;
 
 Tensor<2, 3> ElasticityEquation::get_rotation_matrix(const std::vector<Tensor<1, 3>> &grad_u)
 {
